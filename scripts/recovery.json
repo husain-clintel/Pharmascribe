@@ -1,0 +1,5 @@
+{
+  "RecoveryMechanisms": [
+    {"Priority": 1, "Name": "verified_email"}
+  ]
+}

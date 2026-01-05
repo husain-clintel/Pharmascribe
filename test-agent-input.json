@@ -1,0 +1,10 @@
+{
+  "reportId": "test-agent-123",
+  "message": "Help me write an executive summary for a single-dose IV PK study in rats",
+  "context": {
+    "title": "Test PK Study",
+    "studyType": "Single Dose PK",
+    "species": "rat",
+    "route": "IV"
+  }
+}

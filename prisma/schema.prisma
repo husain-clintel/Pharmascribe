@@ -1,0 +1,202 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ReportType {
+  PK_REPORT
+  TOXICOLOGY
+  CMC
+  CLINICAL_PHARMACOLOGY
+  BIOANALYTICAL
+  ADME
+  PHARMACOLOGY
+}
+
+enum ReportStatus {
+  DRAFT
+  GENERATING
+  REVIEW
+  QC_PENDING
+  QC_COMPLETE
+  FINALIZED
+  EXPORTED
+}
+
+enum FileType {
+  NCA_PARAMETERS
+  CONCENTRATION_DATA
+  TISSUE_DATA
+  FIGURE
+  PROTOCOL
+  OTHER
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+enum QCCategory {
+  DATA_ACCURACY
+  FORMATTING
+  TERMINOLOGY
+  CONSISTENCY
+  CALCULATIONS
+  COMPLETENESS
+  REGULATORY
+}
+
+enum Severity {
+  CRITICAL
+  MAJOR
+  MINOR
+  INFO
+}
+
+enum QCStatus {
+  PENDING
+  ACKNOWLEDGED
+  FIXED
+  DISMISSED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cognitoId String  @unique // AWS Cognito sub
+  email     String  @unique
+  name      String?
+  role      UserRole @default(USER)
+
+  reports Report[]
+
+  @@index([email])
+  @@index([cognitoId])
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reportType ReportType
+  status     ReportStatus @default(DRAFT)
+
+  // User ownership (optional for migration compatibility)
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  // Study Metadata
+  studyId              String
+  reportNumber         String?
+  reportTitle          String
+  reportVersion        String   @default("1.0")
+  testFacility         String?
+  testFacilityStudyNum String?
+  species              String?
+  doseLevel            String?
+  analytes             String?
+  matrices             String?
+  routeOfAdmin         String?
+
+  // Author Information
+  preparedBy  String?
+  reviewedBy  String?
+  approvedBy  String?
+
+  // Content (JSON structure for full report)
+  content Json?
+
+  // Extracted data from files (for AI context)
+  extractedContext Json?
+
+  // Relationships
+  uploadedFiles UploadedFile[]
+  chatMessages  ChatMessage[]
+  qcResults     QCResult[]
+
+  @@index([reportType])
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId])
+}
+
+model UploadedFile {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  filename   String
+  fileType   FileType
+  mimeType   String
+  size       Int
+  blobUrl    String
+  folderPath String?  // Track source folder for batch uploads
+
+  processed     Boolean @default(false)
+  extractedData Json?
+
+  reportId String?
+  report   Report? @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+  @@index([fileType])
+  @@index([folderPath])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  role     MessageRole
+  content  String
+  metadata Json?
+
+  reportId String
+  report   Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+  @@index([createdAt])
+}
+
+model QCResult {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  category   QCCategory
+  severity   Severity
+  section    String
+  issue      String
+  suggestion String?
+
+  status     QCStatus  @default(PENDING)
+  resolvedAt DateTime?
+  resolution String?
+
+  reportId String
+  report   Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+  @@index([category])
+  @@index([severity])
+}
+
+model ApiSettings {
+  id        String   @id @default("default")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  geminiApiKey String?
+}

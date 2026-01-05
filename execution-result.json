@@ -1,0 +1,12 @@
+﻿{
+    "executionArn": "arn:aws:states:us-east-1:660309491335:execution:pharmascribe-chat-workflow:f4f072d9-f4ac-4f36-90ec-bb9c01958a6f",
+    "stateMachineArn": "arn:aws:states:us-east-1:660309491335:stateMachine:pharmascribe-chat-workflow",
+    "name": "f4f072d9-f4ac-4f36-90ec-bb9c01958a6f",
+    "status": "SUCCEEDED",
+    "startDate": "2026-01-02T10:13:09.659000-05:00",
+    "stopDate": "2026-01-02T10:13:30.050000-05:00",
+    "input": "{\n  \"reportId\": \"test-agent-123\",\n  \"message\": \"Help me write an executive summary for a single-dose IV PK study in rats\",\n  \"context\": {\n    \"title\": \"Test PK Study\",\n    \"studyType\": \"Single Dose PK\",\n    \"species\": \"rat\",\n    \"route\": \"IV\"\n  }\n}\n",
+    "inputDetails": {
+        "included": true
+    },
+    "output": 

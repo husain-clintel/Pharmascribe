@@ -1,0 +1,16 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "StepFunctionsInvoke",
+      "Effect": "Allow",
+      "Action": [
+        "states:StartExecution",
+        "states:StartSyncExecution"
+      ],
+      "Resource": [
+        "arn:aws:states:us-east-1:660309491335:stateMachine:pharmascribe-*"
+      ]
+    }
+  ]
+}

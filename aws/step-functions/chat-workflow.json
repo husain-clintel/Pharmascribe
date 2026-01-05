@@ -1,0 +1,195 @@
+{
+  "Comment": "PharmaScribe Chat Workflow - Agentic AI with autonomous tool use",
+  "StartAt": "ParallelContextLoad",
+  "States": {
+    "ParallelContextLoad": {
+      "Type": "Parallel",
+      "Comment": "Load memory and prepare context in parallel",
+      "Branches": [
+        {
+          "StartAt": "RecallMemory",
+          "States": {
+            "RecallMemory": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:us-east-1:660309491335:function:pharmascribe-memory-manager",
+              "Parameters": {
+                "action": "recall",
+                "reportId.$": "$.reportId",
+                "query.$": "$.message"
+              },
+              "ResultPath": "$.memoryResult",
+              "End": true,
+              "Retry": [
+                {
+                  "ErrorEquals": ["Lambda.ServiceException", "Lambda.TooManyRequestsException"],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 3,
+                  "BackoffRate": 2
+                }
+              ],
+              "Catch": [
+                {
+                  "ErrorEquals": ["States.ALL"],
+                  "ResultPath": "$.memoryError",
+                  "Next": "MemoryFallback"
+                }
+              ]
+            },
+            "MemoryFallback": {
+              "Type": "Pass",
+              "Result": {
+                "success": true,
+                "memories": []
+              },
+              "ResultPath": "$.memoryResult",
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "PrepareContext",
+          "States": {
+            "PrepareContext": {
+              "Type": "Pass",
+              "Comment": "Pass through the context (conversationHistory is optional)",
+              "Parameters": {
+                "context.$": "$.context"
+              },
+              "End": true
+            }
+          }
+        }
+      ],
+      "ResultPath": "$.parallelResults",
+      "Next": "MergeContext"
+    },
+    "MergeContext": {
+      "Type": "Pass",
+      "Comment": "Merge parallel results into orchestrator input",
+      "Parameters": {
+        "action": "chat",
+        "reportId.$": "$.reportId",
+        "message.$": "$.message",
+        "context.$": "$.parallelResults[1].context"
+      },
+      "ResultPath": "$.orchestratorInput",
+      "Next": "InvokeAgent"
+    },
+    "InvokeAgent": {
+      "Type": "Task",
+      "Comment": "Invoke the agentic orchestrator - handles QC internally via tool use",
+      "Resource": "arn:aws:lambda:us-east-1:660309491335:function:pharmascribe-agent-orchestrator",
+      "Parameters": {
+        "action.$": "$.orchestratorInput.action",
+        "reportId.$": "$.orchestratorInput.reportId",
+        "message.$": "$.orchestratorInput.message",
+        "context.$": "$.orchestratorInput.context"
+      },
+      "ResultPath": "$.agentResult",
+      "TimeoutSeconds": 300,
+      "Next": "CheckAgentSuccess",
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException", "Lambda.TooManyRequestsException"],
+          "IntervalSeconds": 3,
+          "MaxAttempts": 2,
+          "BackoffRate": 2
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.agentError",
+          "Next": "HandleError"
+        }
+      ]
+    },
+    "CheckAgentSuccess": {
+      "Type": "Choice",
+      "Comment": "Check if agent succeeded",
+      "Choices": [
+        {
+          "Variable": "$.agentResult.success",
+          "BooleanEquals": false,
+          "Next": "HandleAgentError"
+        }
+      ],
+      "Default": "CheckForChanges"
+    },
+    "HandleAgentError": {
+      "Type": "Pass",
+      "Comment": "Handle agent error",
+      "Parameters": {
+        "success": false,
+        "error.$": "$.agentResult.error"
+      },
+      "End": true
+    },
+    "CheckForChanges": {
+      "Type": "Choice",
+      "Comment": "Check if agent made changes to store",
+      "Choices": [
+        {
+          "Variable": "$.agentResult.changes",
+          "IsPresent": true,
+          "Next": "StoreDecision"
+        }
+      ],
+      "Default": "PrepareResponse"
+    },
+    "StoreDecision": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:660309491335:function:pharmascribe-memory-manager",
+      "Parameters": {
+        "action": "store",
+        "reportId.$": "$.reportId",
+        "memory": {
+          "type": "DECISION",
+          "content.$": "States.Format('Changes made via chat: {}', $.message)",
+          "importance": 8,
+          "category": "user_preference"
+        }
+      },
+      "ResultPath": "$.storeResult",
+      "Next": "PrepareResponseWithChanges",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.storeError",
+          "Next": "PrepareResponseWithChanges"
+        }
+      ]
+    },
+    "PrepareResponse": {
+      "Type": "Pass",
+      "Comment": "Prepare final response without changes",
+      "Parameters": {
+        "success": true,
+        "response.$": "$.agentResult.response",
+        "metadata.$": "$.agentResult.metadata"
+      },
+      "End": true
+    },
+    "PrepareResponseWithChanges": {
+      "Type": "Pass",
+      "Comment": "Prepare final response with changes",
+      "Parameters": {
+        "success": true,
+        "response.$": "$.agentResult.response",
+        "changes.$": "$.agentResult.changes",
+        "metadata.$": "$.agentResult.metadata"
+      },
+      "End": true
+    },
+    "HandleError": {
+      "Type": "Pass",
+      "Comment": "Handle workflow errors",
+      "Parameters": {
+        "success": false,
+        "error": "Workflow execution failed",
+        "details.$": "$.agentError"
+      },
+      "End": true
+    }
+  }
+}

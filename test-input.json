@@ -1,0 +1,10 @@
+{
+  "reportId": "test-report-123",
+  "message": "Hello, can you help me with my PK report?",
+  "context": {
+    "title": "Test PK Study",
+    "studyType": "Single Dose PK",
+    "species": "rat",
+    "route": "IV"
+  }
+}

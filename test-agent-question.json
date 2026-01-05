@@ -1,0 +1,23 @@
+{
+  "reportId": "test-question-123",
+  "message": "Generate an executive summary for this PK study",
+  "context": {
+    "title": "Single Dose PK Study in Rats",
+    "studyType": "Single Dose PK",
+    "species": "rat",
+    "route": "IV",
+    "doses": ["1 mg/kg", "5 mg/kg", "25 mg/kg"],
+    "sections": [],
+    "tables": [
+      {
+        "id": "table-1",
+        "caption": "PK Parameters",
+        "headers": ["Parameter", "1 mg/kg", "5 mg/kg", "25 mg/kg"],
+        "data": [
+          ["Cmax (ng/mL)", "125 ± 18", "589 ± 92", "2890 ± 445"],
+          ["AUC0-inf (ng·h/mL)", "890 ± 178", "4250 ± 680", "21500 ± 4085"]
+        ]
+      }
+    ]
+  }
+}

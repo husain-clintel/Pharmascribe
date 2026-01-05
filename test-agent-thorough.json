@@ -1,0 +1,42 @@
+{
+  "reportId": "test-thorough-123",
+  "message": "The TK table is missing data for the 3rd dose timepoint. Also check if there are any similar issues in other sections.",
+  "context": {
+    "title": "28-Day Repeat Dose Toxicity Study in Rats",
+    "studyType": "Repeat Dose TK",
+    "species": "rat",
+    "route": "IV",
+    "doses": ["1 mg/kg", "5 mg/kg", "25 mg/kg"],
+    "timePoints": ["Day 1", "Day 14", "Day 28"],
+    "sections": [
+      {
+        "id": "executive-summary",
+        "title": "Executive Summary",
+        "content": "Following repeat intravenous administration of Test Article to male and female rats at 1, 5, and 25 mg/kg for 28 days, systemic exposure was evaluated on Day 1 and Day 28. Exposure increased in a dose-proportional manner. No notable sex differences were observed."
+      },
+      {
+        "id": "pk-results",
+        "title": "Toxicokinetic Results",
+        "content": "Plasma concentrations of Test Article were measured following the 1st dose (Day 1) and last dose (Day 28). Mean Cmax and AUC0-24 values are presented in Table 1. Exposure on Day 28 was similar to Day 1, indicating no accumulation."
+      },
+      {
+        "id": "discussion",
+        "title": "Discussion",
+        "content": "Systemic exposure to Test Article increased with dose on both Day 1 and Day 28. The Rat showed similar exposure between males and females at all dose levels."
+      }
+    ],
+    "tables": [
+      {
+        "id": "table-1",
+        "caption": "Table 1: Mean (CV%) Toxicokinetic Parameters Following IV Administration",
+        "headers": ["Parameter", "Unit", "1 mg/kg Male", "1 mg/kg Female", "5 mg/kg Male", "5 mg/kg Female", "25 mg/kg Male", "25 mg/kg Female"],
+        "data": [
+          ["Day 1 Cmax", "ng/mL", "125 (18.2)", "132 (21.5)", "589 (15.7)", "601 (19.2)", "2890 (22.1)", "2950 (18.9)"],
+          ["Day 1 AUC0-24", "ng·h/mL", "890 (20.1)", "912 (18.7)", "4250 (16.2)", "4380 (21.0)", "21500 (19.5)", "22100 (17.8)"],
+          ["Day 28 Cmax", "ng/mL", "118 (22.5)", "128 (19.8)", "572 (18.1)", "595 (20.5)", "2810 (21.0)", "2880 (19.2)"],
+          ["Day 28 AUC0-24", "ng·h/mL", "875 (19.2)", "905 (20.1)", "4120 (17.5)", "4290 (22.1)", "20800 (18.9)", "21500 (20.2)"]
+        ]
+      }
+    ]
+  }
+}

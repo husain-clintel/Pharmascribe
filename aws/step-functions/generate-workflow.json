@@ -1,0 +1,275 @@
+{
+  "Comment": "PharmaScribe Generate Workflow - Generates complete report sections and tables",
+  "StartAt": "ParallelInit",
+  "States": {
+    "ParallelInit": {
+      "Type": "Parallel",
+      "Comment": "Initialize by loading memories and extracting file data",
+      "Branches": [
+        {
+          "StartAt": "RecallPreferences",
+          "States": {
+            "RecallPreferences": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:us-east-1:660309491335:function:pharmascribe-memory-manager",
+              "Parameters": {
+                "action": "recall",
+                "reportId.$": "$.reportId"
+              },
+              "ResultPath": "$.memories",
+              "End": true,
+              "Catch": [
+                {
+                  "ErrorEquals": ["States.ALL"],
+                  "ResultPath": "$.memoryError",
+                  "Next": "MemoryFallback"
+                }
+              ]
+            },
+            "MemoryFallback": {
+              "Type": "Pass",
+              "Result": {
+                "success": true,
+                "memories": []
+              },
+              "ResultPath": "$.memories",
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "PrepareFileContext",
+          "States": {
+            "PrepareFileContext": {
+              "Type": "Pass",
+              "Parameters": {
+                "files.$": "$.context.uploadedFiles",
+                "studyInfo": {
+                  "title.$": "$.context.title",
+                  "studyType.$": "$.context.studyType",
+                  "species.$": "$.context.species",
+                  "route.$": "$.context.route"
+                }
+              },
+              "End": true
+            }
+          }
+        }
+      ],
+      "ResultPath": "$.initResults",
+      "Next": "DetermineSectionsToGenerate"
+    },
+    "DetermineSectionsToGenerate": {
+      "Type": "Pass",
+      "Comment": "Determine which sections to generate based on input",
+      "Parameters": {
+        "reportId.$": "$.reportId",
+        "context.$": "$.context",
+        "memories.$": "$.initResults[0].memories.memories",
+        "sections": [
+          {"id": "executive-summary", "type": "executive-summary", "order": 1},
+          {"id": "study-design", "type": "study-design", "order": 2},
+          {"id": "pk-parameters", "type": "pk-parameters", "order": 3},
+          {"id": "results", "type": "results", "order": 4},
+          {"id": "discussion", "type": "discussion", "order": 5},
+          {"id": "conclusions", "type": "conclusions", "order": 6}
+        ]
+      },
+      "Next": "GenerateSections"
+    },
+    "GenerateSections": {
+      "Type": "Map",
+      "Comment": "Generate each section sequentially to maintain context",
+      "ItemsPath": "$.sections",
+      "MaxConcurrency": 1,
+      "Parameters": {
+        "reportId.$": "$.reportId",
+        "sectionId.$": "$$.Map.Item.Value.id",
+        "sectionType.$": "$$.Map.Item.Value.type",
+        "context.$": "$.context",
+        "memories.$": "$.memories"
+      },
+      "Iterator": {
+        "StartAt": "WriteSection",
+        "States": {
+          "WriteSection": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:us-east-1:660309491335:function:pharmascribe-section-writer",
+            "Parameters": {
+              "reportId.$": "$.reportId",
+              "sectionId.$": "$.sectionId",
+              "sectionType.$": "$.sectionType",
+              "context.$": "$.context",
+              "memories.$": "$.memories"
+            },
+            "ResultPath": "$.sectionResult",
+            "End": true,
+            "Retry": [
+              {
+                "ErrorEquals": ["Lambda.ServiceException", "Lambda.TooManyRequestsException"],
+                "IntervalSeconds": 5,
+                "MaxAttempts": 2,
+                "BackoffRate": 2
+              }
+            ],
+            "Catch": [
+              {
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.sectionError",
+                "Next": "SectionFallback"
+              }
+            ]
+          },
+          "SectionFallback": {
+            "Type": "Pass",
+            "Result": {
+              "success": false,
+              "content": "Section generation failed. Please try again."
+            },
+            "ResultPath": "$.sectionResult",
+            "End": true
+          }
+        }
+      },
+      "ResultPath": "$.generatedSections",
+      "Next": "GenerateTables"
+    },
+    "GenerateTables": {
+      "Type": "Parallel",
+      "Comment": "Generate tables in parallel",
+      "Branches": [
+        {
+          "StartAt": "GeneratePKSummaryTable",
+          "States": {
+            "GeneratePKSummaryTable": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:us-east-1:660309491335:function:pharmascribe-table-generator",
+              "Parameters": {
+                "reportId.$": "$.reportId",
+                "tableType": "pk-summary",
+                "context.$": "$.context",
+                "format": "mean_cv"
+              },
+              "ResultPath": "$.table",
+              "End": true,
+              "Catch": [
+                {
+                  "ErrorEquals": ["States.ALL"],
+                  "ResultPath": "$.tableError",
+                  "Next": "PKTableFallback"
+                }
+              ]
+            },
+            "PKTableFallback": {
+              "Type": "Pass",
+              "Result": null,
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "GenerateConcentrationTable",
+          "States": {
+            "GenerateConcentrationTable": {
+              "Type": "Task",
+              "Resource": "arn:aws:lambda:us-east-1:660309491335:function:pharmascribe-table-generator",
+              "Parameters": {
+                "reportId.$": "$.reportId",
+                "tableType": "concentration-time",
+                "context.$": "$.context",
+                "format": "mean_cv"
+              },
+              "ResultPath": "$.table",
+              "End": true,
+              "Catch": [
+                {
+                  "ErrorEquals": ["States.ALL"],
+                  "ResultPath": "$.tableError",
+                  "Next": "ConcTableFallback"
+                }
+              ]
+            },
+            "ConcTableFallback": {
+              "Type": "Pass",
+              "Result": null,
+              "End": true
+            }
+          }
+        }
+      ],
+      "ResultPath": "$.generatedTables",
+      "Next": "AssembleReport"
+    },
+    "AssembleReport": {
+      "Type": "Pass",
+      "Comment": "Assemble all generated content",
+      "Parameters": {
+        "reportId.$": "$.reportId",
+        "sections.$": "$.generatedSections",
+        "tables.$": "$.generatedTables"
+      },
+      "ResultPath": "$.assembledReport",
+      "Next": "RunFinalQC"
+    },
+    "RunFinalQC": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:660309491335:function:pharmascribe-qc-agent",
+      "Parameters": {
+        "reportId.$": "$.reportId",
+        "content": {
+          "sections.$": "$.assembledReport.sections",
+          "tables.$": "$.assembledReport.tables"
+        },
+        "checkTypes": ["terminology", "formatting", "consistency", "regulatory"]
+      },
+      "ResultPath": "$.qcResult",
+      "Next": "StoreGenerationContext",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.qcError",
+          "Next": "StoreGenerationContext"
+        }
+      ]
+    },
+    "StoreGenerationContext": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:660309491335:function:pharmascribe-memory-manager",
+      "Parameters": {
+        "action": "store",
+        "reportId.$": "$.reportId",
+        "memory": {
+          "type": "CONTEXT",
+          "content": {
+            "generatedAt.$": "$$.State.EnteredTime",
+            "sectionsGenerated": 6,
+            "tablesGenerated": 2
+          },
+          "importance": 7,
+          "category": "document_structure"
+        }
+      },
+      "ResultPath": "$.storeResult",
+      "Next": "PrepareOutput",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "PrepareOutput"
+        }
+      ]
+    },
+    "PrepareOutput": {
+      "Type": "Pass",
+      "Comment": "Prepare final output",
+      "Parameters": {
+        "success": true,
+        "reportId.$": "$.reportId",
+        "sections.$": "$.assembledReport.sections",
+        "tables.$": "$.assembledReport.tables",
+        "qcScore.$": "$.qcResult.score",
+        "qcIssues.$": "$.qcResult.issues"
+      },
+      "End": true
+    }
+  }
+}
