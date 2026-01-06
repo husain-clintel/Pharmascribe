@@ -6,9 +6,20 @@ export const maxDuration = 60
 
 const anthropic = new Anthropic()
 
+// Report type labels for title generation
+const REPORT_TYPE_LABELS: Record<string, string> = {
+  'PK_REPORT': 'Pharmacokinetic',
+  'TOXICOLOGY': 'Toxicology',
+  'CMC': 'Chemistry, Manufacturing, and Controls',
+  'CLINICAL_PHARMACOLOGY': 'Clinical Pharmacology',
+  'BIOANALYTICAL': 'Bioanalytical',
+  'ADME': 'Absorption, Distribution, Metabolism, and Excretion',
+  'PHARMACOLOGY': 'Pharmacology'
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { protocolContent, filename } = await request.json()
+    const { protocolContent, filename, reportType } = await request.json()
 
     if (!protocolContent) {
       return NextResponse.json(
@@ -17,7 +28,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const prompt = `You are analyzing a study protocol document to extract metadata for an IND regulatory report.
+    // Get the report type label for the prompt
+    const reportTypeLabel = REPORT_TYPE_LABELS[reportType] || 'Pharmacokinetic'
+
+    const prompt = `You are analyzing a study protocol document to extract metadata for an IND regulatory ${reportTypeLabel} report.
+
+REPORT TYPE: ${reportTypeLabel}
 
 PROTOCOL CONTENT:
 ${protocolContent.slice(0, 50000)}
@@ -26,8 +42,8 @@ Extract the following information from this protocol. If a field is not found, l
 Return ONLY a valid JSON object with these exact keys:
 
 {
-  "studyId": "The study identifier/number (e.g., 3103-03, AT25-AS200)",
-  "reportTitle": "A descriptive title for the PK/Pharmacology report based on the study",
+  "studyId": "The study identifier/number (e.g., STU-2024-001, PK-001)",
+  "reportTitle": "A descriptive title specifically for a ${reportTypeLabel} report based on the study",
   "reportNumber": "Any report number if mentioned",
   "testFacility": "The test facility or CRO name",
   "testFacilityStudyNum": "Test facility's internal study number if different from studyId",
@@ -52,12 +68,13 @@ Important:
 - For species, use lowercase values: "cynomolgus", "rhesus", "rat", "mouse", "dog", "rabbit", "human"
 - For routeOfAdmin, use abbreviations: "IV", "SC", "IM", "PO", "IP", "Topical"
 - Extract as much information as possible from the protocol
-- The reportTitle should be descriptive and suitable for an IND submission
+- The reportTitle MUST be appropriate for a ${reportTypeLabel} report (e.g., "${reportTypeLabel} Study of [Test Article] Following [Route] Administration in [Species]")
+- Make the title descriptive and suitable for an IND submission
 
 Return ONLY the JSON object, no other text.`
 
     const response = await anthropic.messages.create({
-      model: 'claude-opus-4-5-20250114',
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 2000,
       messages: [
         { role: 'user', content: prompt }

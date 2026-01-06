@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useState, useEffect, useCallback } from "react"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -28,11 +28,12 @@ import {
 } from "lucide-react"
 import { getReportTypeLabel, getStatusColor } from "@/lib/utils"
 import { useInactivityLogout } from "@/hooks/useInactivityLogout"
-import type { Report, ReportSection, REPORT_TYPES } from "@/types"
+import type { Report, ReportSection, REPORT_TYPES, QCResult } from "@/types"
 import { ReportPreview } from "@/components/report/ReportPreview"
 import { SectionEditor } from "@/components/report/SectionEditor"
 import { ChatPanel } from "@/components/chat/ChatPanel"
 import { GenerationProgress } from "@/components/report/GenerationProgress"
+import { GenerateQuestionnaire, type GenerationAnswers } from "@/components/report/GenerateQuestionnaire"
 
 // Helper function to get file icon based on file type
 function getFileIcon(file: any) {
@@ -48,14 +49,65 @@ function getFileIcon(file: any) {
 export default function ReportEditorPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const isDemo = searchParams.get('demo') === 'true'
   const [report, setReport] = useState<Report | null>(null)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [selectedSection, setSelectedSection] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("editor")
+  const [showQuestionnaire, setShowQuestionnaire] = useState(false)
+  const [qcFixPrompt, setQcFixPrompt] = useState<string | null>(null)
+  const [qcFixFindings, setQcFixFindings] = useState<QCResult[] | null>(null)
 
-  // Auto-logout after 1 hour of inactivity
+  // Auto-logout after 1 hour of inactivity (skip in demo mode)
   useInactivityLogout()
+
+  // Helper to get headers with demo mode
+  const getHeaders = (contentType = true): Record<string, string> => {
+    const headers: Record<string, string> = {}
+    if (contentType) headers['Content-Type'] = 'application/json'
+    if (isDemo) headers['x-demo-mode'] = 'true'
+    return headers
+  }
+
+  // Handle tab query parameter and QC fix flow
+  useEffect(() => {
+    const tabParam = searchParams.get('tab')
+    const qcfixParam = searchParams.get('qcfix')
+
+    if (tabParam && ['editor', 'preview', 'chat'].includes(tabParam)) {
+      setActiveTab(tabParam)
+    }
+
+    // Check for QC fix prompt in sessionStorage
+    if (qcfixParam === 'true') {
+      const prompt = sessionStorage.getItem('qc_fix_prompt')
+      const findingsJson = sessionStorage.getItem('qc_fix_findings')
+
+      if (prompt) {
+        setQcFixPrompt(prompt)
+      }
+
+      // Parse and set structured QC findings for the agent
+      if (findingsJson) {
+        try {
+          const findings = JSON.parse(findingsJson) as QCResult[]
+          setQcFixFindings(findings)
+        } catch (e) {
+          console.error('Failed to parse QC findings:', e)
+        }
+      }
+
+      // Clear the stored data
+      sessionStorage.removeItem('qc_fix_prompt')
+      sessionStorage.removeItem('qc_fix_issue_ids')
+      sessionStorage.removeItem('qc_fix_findings')
+
+      // Remove the query params from URL
+      router.replace(`/reports/${params.id}`)
+    }
+  }, [searchParams, params.id, router])
 
   useEffect(() => {
     if (params.id) {
@@ -65,7 +117,9 @@ export default function ReportEditorPage() {
 
   const fetchReport = async () => {
     try {
-      const res = await fetch(`/api/reports/${params.id}`)
+      const res = await fetch(`/api/reports/${params.id}`, {
+        headers: getHeaders(false)
+      })
       if (res.ok) {
         const data = await res.json()
         setReport(data)
@@ -79,12 +133,19 @@ export default function ReportEditorPage() {
     }
   }
 
-  const handleGenerate = async () => {
+  const handleOpenQuestionnaire = () => {
+    setShowQuestionnaire(true)
+  }
+
+  const handleGenerate = async (answers?: GenerationAnswers) => {
+    setShowQuestionnaire(false)
     setGenerating(true)
     toast.loading('Generating report...', { id: 'generate' })
     try {
       const res = await fetch(`/api/reports/${params.id}/generate`, {
-        method: 'POST'
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ generationAnswers: answers })
       })
 
       if (res.ok) {
@@ -107,7 +168,7 @@ export default function ReportEditorPage() {
     try {
       const res = await fetch(`/api/reports/${params.id}/export`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ format })
       })
 
@@ -138,7 +199,7 @@ export default function ReportEditorPage() {
     try {
       const res = await fetch(`/api/reports/${params.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ content: null, status: 'DRAFT' })
       })
 
@@ -161,7 +222,8 @@ export default function ReportEditorPage() {
 
     try {
       const res = await fetch(`/api/upload/${fileId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: getHeaders(false)
       })
 
       if (res.ok) {
@@ -183,7 +245,8 @@ export default function ReportEditorPage() {
     toast.loading('Re-extracting file content...', { id: 'reextract' })
     try {
       const res = await fetch(`/api/upload/${fileId}/reextract`, {
-        method: 'POST'
+        method: 'POST',
+        headers: getHeaders(false)
       })
 
       if (res.ok) {
@@ -218,7 +281,7 @@ export default function ReportEditorPage() {
     try {
       const res = await fetch(`/api/reports/${params.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ content })
       })
 
@@ -253,7 +316,7 @@ export default function ReportEditorPage() {
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="container flex h-14 items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/reports">
+            <Link href={isDemo ? "/" : "/reports"}>
               <Button variant="ghost" size="icon">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
@@ -276,7 +339,7 @@ export default function ReportEditorPage() {
             </Badge>
             {!report.content && (
               <Button
-                onClick={handleGenerate}
+                onClick={handleOpenQuestionnaire}
                 disabled={generating}
                 className="gap-2"
               >
@@ -453,7 +516,7 @@ export default function ReportEditorPage() {
                       a complete draft following regulatory guidelines.
                     </p>
                     <Button
-                      onClick={handleGenerate}
+                      onClick={handleOpenQuestionnaire}
                       disabled={generating}
                       size="lg"
                       className="gap-2"
@@ -481,11 +544,27 @@ export default function ReportEditorPage() {
                 reportId={report.id}
                 messages={report.chatMessages || []}
                 onRefreshReport={fetchReport}
+                initialPrompt={qcFixPrompt}
+                onInitialPromptUsed={() => setQcFixPrompt(null)}
+                qcFindings={qcFixFindings}
+                onQcFindingsUsed={() => setQcFixFindings(null)}
+                isDemo={isDemo}
               />
             </TabsContent>
           </Tabs>
         </main>
       </div>
+
+      {/* Generate Questionnaire Modal */}
+      <GenerateQuestionnaire
+        open={showQuestionnaire}
+        onOpenChange={setShowQuestionnaire}
+        onSubmit={handleGenerate}
+        isGenerating={generating}
+        reportId={report.id}
+        reportType={report.reportType}
+        isDemo={isDemo}
+      />
     </div>
   )
 }

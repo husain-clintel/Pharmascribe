@@ -8,7 +8,7 @@ const protectedRoutes = ['/reports', '/settings']
 const authRoutes = ['/login', '/signup']
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+  const { pathname, searchParams } = request.nextUrl
 
   // Check for Cognito auth tokens in cookies
   // Amplify stores tokens in cookies with keys like:
@@ -18,6 +18,15 @@ export function middleware(request: NextRequest) {
     cookie.name.includes('CognitoIdentityServiceProvider') &&
     cookie.name.includes('accessToken')
   )
+
+  // Allow demo mode access without authentication
+  const isDemoMode = searchParams.get('demo') === 'true'
+  const isDemoNewReport = pathname === '/reports/new' && isDemoMode
+  const isDemoReportPage = pathname.startsWith('/reports/') && pathname !== '/reports' && isDemoMode
+
+  if (isDemoNewReport || isDemoReportPage) {
+    return NextResponse.next()
+  }
 
   // Check if user is on a protected route without auth
   const isProtectedRoute = protectedRoutes.some(route =>

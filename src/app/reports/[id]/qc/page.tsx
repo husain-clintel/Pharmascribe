@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   FileText,
   ArrowLeft,
@@ -16,7 +17,10 @@ import {
   RefreshCw,
   Loader2,
   Check,
-  X
+  X,
+  Wand2,
+  CheckSquare,
+  Square
 } from "lucide-react"
 import { getSeverityColor } from "@/lib/utils"
 import type { QCResult } from "@/types"
@@ -28,6 +32,7 @@ export default function QCPage() {
   const [loading, setLoading] = useState(true)
   const [running, setRunning] = useState(false)
   const [summary, setSummary] = useState<any>(null)
+  const [selectedIssues, setSelectedIssues] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     fetchQCResults()
@@ -115,6 +120,50 @@ export default function QCPage() {
     }
   }
 
+  // Selection helpers
+  const pendingIssues = qcResults.filter(r => r.status === 'PENDING')
+
+  const toggleIssueSelection = (issueId: string) => {
+    setSelectedIssues(prev => {
+      const next = new Set(prev)
+      if (next.has(issueId)) {
+        next.delete(issueId)
+      } else {
+        next.add(issueId)
+      }
+      return next
+    })
+  }
+
+  const selectAllPending = () => {
+    setSelectedIssues(new Set(pendingIssues.map(r => r.id)))
+  }
+
+  const deselectAll = () => {
+    setSelectedIssues(new Set())
+  }
+
+  const fixWithAI = () => {
+    // Get selected issues details
+    const selected = qcResults.filter(r => selectedIssues.has(r.id))
+
+    // Build a prompt describing the issues to fix
+    const issuesList = selected.map((issue, i) =>
+      `${i + 1}. [${issue.severity}] ${issue.category} - Section "${issue.section}": ${issue.issue}${issue.suggestion ? ` (Suggestion: ${issue.suggestion})` : ''}`
+    ).join('\n')
+
+    const prompt = `Please fix the following ${selected.length} QC issue(s) in the report:\n\n${issuesList}\n\nAddress each issue and make the necessary corrections to the relevant sections.`
+
+    // Store the prompt in sessionStorage so the chat panel can pick it up
+    sessionStorage.setItem('qc_fix_prompt', prompt)
+    sessionStorage.setItem('qc_fix_issue_ids', JSON.stringify(Array.from(selectedIssues)))
+    // Store full QC findings as structured data for the agent
+    sessionStorage.setItem('qc_fix_findings', JSON.stringify(selected))
+
+    // Navigate to report page with chat tab
+    router.push(`/reports/${params.id}?tab=chat&qcfix=true`)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -131,23 +180,35 @@ export default function QCPage() {
               <span className="font-semibold">Quality Control</span>
             </div>
           </div>
-          <Button
-            onClick={runQC}
-            disabled={running}
-            className="gap-2"
-          >
-            {running ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Running QC...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="h-4 w-4" />
-                Run QC Check
-              </>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={runQC}
+              disabled={running}
+              variant="outline"
+              className="gap-2"
+            >
+              {running ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Running QC...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4" />
+                  Run QC Check
+                </>
+              )}
+            </Button>
+            {selectedIssues.size > 0 && (
+              <Button
+                onClick={fixWithAI}
+                className="gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              >
+                <Wand2 className="h-4 w-4" />
+                Fix {selectedIssues.size} Issue{selectedIssues.size > 1 ? 's' : ''} with AI
+              </Button>
             )}
-          </Button>
+          </div>
         </div>
       </header>
 
@@ -210,17 +271,60 @@ export default function QCPage() {
           </Card>
         ) : (
           <div className="space-y-4">
+            {/* Selection toolbar */}
+            {pendingIssues.length > 0 && (
+              <div className="flex items-center justify-between bg-white border rounded-lg p-3">
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-muted-foreground">
+                    {selectedIssues.size} of {pendingIssues.length} pending issue{pendingIssues.length > 1 ? 's' : ''} selected
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={selectAllPending}
+                    className="gap-1"
+                  >
+                    <CheckSquare className="h-4 w-4" />
+                    Select All Pending
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={deselectAll}
+                    disabled={selectedIssues.size === 0}
+                    className="gap-1"
+                  >
+                    <Square className="h-4 w-4" />
+                    Deselect All
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {qcResults.map((result) => (
               <Card
                 key={result.id}
-                className={`transition-opacity ${
+                className={`transition-all ${
                   result.status === 'FIXED' || result.status === 'DISMISSED'
                     ? 'opacity-60'
                     : ''
-                }`}
+                } ${selectedIssues.has(result.id) ? 'ring-2 ring-purple-500 bg-purple-50/30' : ''}`}
               >
                 <CardContent className="py-4">
                   <div className="flex items-start gap-4">
+                    {/* Checkbox for pending issues */}
+                    {result.status === 'PENDING' && (
+                      <div className="flex-shrink-0 mt-1">
+                        <Checkbox
+                          id={`select-${result.id}`}
+                          checked={selectedIssues.has(result.id)}
+                          onCheckedChange={() => toggleIssueSelection(result.id)}
+                          className="h-5 w-5"
+                        />
+                      </div>
+                    )}
                     <div className="flex-shrink-0 mt-1">
                       {getSeverityIcon(result.severity)}
                     </div>

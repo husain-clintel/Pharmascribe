@@ -1,0 +1,67 @@
+STUDY PROTOCOL SUMMARY
+=======================
+
+STUDY IDENTIFICATION
+Study ID: THEO-PK-2024-001
+Study Title: Single-Dose Pharmacokinetic Study of Theophylline in Healthy Adult Subjects
+Sponsor: PharmaCo Research Inc.
+Test Facility: ABC Clinical Research Center
+Test Facility Study Number: CRC-2024-0156
+
+STUDY OBJECTIVES
+Primary Objective:
+To characterize the pharmacokinetic profile of theophylline following a single intravenous dose administration in healthy adult subjects.
+
+Secondary Objectives:
+- To evaluate the safety and tolerability of theophylline
+- To determine key pharmacokinetic parameters including Cmax, AUC, t1/2, CL, and Vd
+
+STUDY DESIGN
+Type: Open-label, single-dose pharmacokinetic study
+Population: Healthy adult volunteers
+Number of Subjects: 12 (6 male, 6 female)
+Age Range: 18-55 years
+BMI Range: 18.5-30.0 kg/m2
+
+TEST ARTICLE
+Name: Theophylline
+Formulation: Solution for injection (25 mg/mL)
+Dose: 320 mg (administered as 12.8 mL IV infusion over 20 minutes)
+Route of Administration: Intravenous (IV)
+Dosing Regimen: Single dose on Day 1
+
+SAMPLING SCHEDULE
+Blood samples for pharmacokinetic analysis were collected at the following timepoints:
+- Pre-dose (0 h)
+- 0.25, 0.5, 1, 2, 4, 8, 12, and 24 hours post-dose
+
+Sample Volume: 4 mL whole blood per timepoint
+Matrix: Plasma (EDTA)
+Total Blood Volume: 36 mL per subject
+
+BIOANALYTICAL METHOD
+Analyte: Theophylline
+Matrix: Human plasma
+Method: Validated LC-MS/MS
+LLOQ: 0.1 mg/L
+Calibration Range: 0.1 - 20.0 mg/L
+
+PHARMACOKINETIC ANALYSIS
+Software: Phoenix WinNonlin (version 8.3)
+Method: Non-compartmental analysis (NCA)
+Parameters Calculated:
+- Cmax: Maximum observed concentration
+- Tmax: Time to maximum concentration
+- AUClast: Area under the curve to last measurable concentration
+- AUCinf: Area under the curve extrapolated to infinity
+- t1/2: Terminal elimination half-life
+- CL: Total body clearance
+- Vz: Volume of distribution during terminal phase
+
+STUDY DATES
+First Subject First Dose: January 15, 2024
+Last Subject Last Sample: January 20, 2024
+
+STUDY DIRECTOR
+Jane Smith, PhD
+ABC Clinical Research Center

@@ -1,5 +1,10 @@
 import type { Report, ExtractedContext } from '@/types'
 
+// Dynamic generation answers from questionnaire
+export interface GenerationAnswers {
+  [questionId: string]: string | string[]
+}
+
 export const PK_REPORT_SYSTEM_PROMPT = `You are an expert pharmacokineticist and regulatory writer generating IND (Investigational New Drug) BA/PK Memorandum reports.
 
 CRITICAL RULES:
@@ -64,13 +69,47 @@ BACK MATTER (Unnumbered):
 - References
 - Appendices (Individual animal data)`
 
-export function generateReportPrompt(report: Report, context: ExtractedContext | null): string {
+export function generateReportPrompt(report: Report, context: ExtractedContext | null, generationAnswers?: GenerationAnswers): string {
   // Build detailed file information
   let dataInstructions = ''
   let figureFiles: any[] = []
   let ncaData: any = null
   let concentrationData: any = null
   let protocolData: any = null
+
+  // Build user response instructions from dynamic questionnaire answers
+  let contextInstructions = ''
+  if (generationAnswers && Object.keys(generationAnswers).length > 0) {
+    const answersList = Object.entries(generationAnswers)
+      .filter(([_, value]) => {
+        if (Array.isArray(value)) return value.length > 0
+        return typeof value === 'string' && value.trim() !== ''
+      })
+      .map(([questionId, value]) => {
+        const displayValue = Array.isArray(value) ? value.join(', ') : value
+        return `- ${questionId}: ${displayValue}`
+      })
+      .join('\n')
+
+    if (answersList) {
+      contextInstructions = `
+==============================================================================
+USER-PROVIDED CONTEXT AND PREFERENCES - FOLLOW THESE INSTRUCTIONS CAREFULLY
+==============================================================================
+
+The user answered the following questions about how they want this report generated.
+Incorporate these answers into the report content, structure, and emphasis:
+
+${answersList}
+
+Use these responses to:
+1. Emphasize the findings and aspects the user indicated are important
+2. Address any limitations or concerns they mentioned
+3. Structure the discussion around their specified priorities
+4. Include any specific details or context they provided
+`
+    }
+  }
 
   if (context && context.files) {
     context.files.forEach((file: any) => {
@@ -177,7 +216,7 @@ AUTHOR INFORMATION:
 - Prepared by: ${report.preparedBy || 'Not specified'}
 - Reviewed by: ${report.reviewedBy || 'Not specified'}
 - Approved by: ${report.approvedBy || 'Not specified'}
-${dataInstructions}
+${contextInstructions}${dataInstructions}
 
 ==============================================================================
 FINAL INSTRUCTIONS - CRITICAL
@@ -187,7 +226,16 @@ FINAL INSTRUCTIONS - CRITICAL
 3. Include ALL uploaded figures in the figures array
 4. Write comprehensive narrative text using actual data values
 
-Generate a complete report draft. Return the response as a JSON object with this structure:
+Generate a complete report draft.
+
+CRITICAL OUTPUT FORMAT INSTRUCTIONS:
+- Return ONLY a valid JSON object - no markdown code blocks, no explanatory text
+- Do NOT wrap the JSON in triple backtick code blocks
+- Start your response directly with { and end with }
+- All content strings should contain plain text, NOT JSON syntax
+- Use proper newlines in content as actual line breaks
+
+Return the response as a JSON object with this structure:
 
 {
   "frontMatter": {
@@ -476,6 +524,36 @@ CRITICAL: HOW TO MAKE CHANGES
 }
 \`\`\`
 
+**FOR GENERATING A NEW PLOT/FIGURE:**
+When the user asks for a plot, chart, graph, or visualization, respond with this JSON format:
+\`\`\`json
+{
+  "plotType": "line",
+  "title": "Mean Plasma Concentration-Time Profile",
+  "xLabel": "Time (hours)",
+  "yLabel": "Concentration (ng/mL)",
+  "data": [
+    {
+      "x": [0, 1, 2, 4, 8, 12, 24],
+      "y": [0, 100, 150, 120, 80, 50, 20],
+      "name": "Mean ± SD"
+    }
+  ],
+  "semiLogY": false,
+  "showLegend": true,
+  "fileName": "concentration_time_plot.png"
+}
+\`\`\`
+
+Plot types available: "line", "scatter", "bar", "semilog", "mean_error"
+For "mean_error" plots, include error_y in data: {"type": "data", "array": [10, 15, 20, ...], "visible": true}
+
+When generating plots from uploaded data:
+- Use the actual data from concentration-time or NCA parameter files
+- For individual subject plots, create one data series per subject
+- For mean plots, calculate mean and SD from all subjects
+- Always use appropriate axis labels with units
+
 ==============================================================================
 CRITICAL FORMATTING RULES
 ==============================================================================
@@ -483,6 +561,7 @@ CRITICAL FORMATTING RULES
 2. Tables must have: id, number, caption, headers (array), data (2D array of strings)
 3. Each row in "data" must be an array of strings matching the headers length
 4. Use "sectionId" to link table to a section (e.g., "plasma-pk", "results")
+5. For plot requests, use the plotType JSON format shown above
 
 EXAMPLES:
 - "Add a table showing dose levels" → Use "newTables" JSON format
@@ -533,7 +612,15 @@ The JSON block is REQUIRED for changes to be applied - without it, no changes wi
 }
 
 export function generateQCPrompt(report: Report): string {
+  const content = report.content as any
+  const sectionIdList = content?.sections?.map((s: any) =>
+    `  - "${s.id}": ${s.title}`
+  ).join('\n') || 'No sections'
+
   return `You are a QC specialist reviewing a BA/PK Memorandum report. Check for these issues:
+
+AVAILABLE SECTION IDs (use these exact IDs in your response):
+${sectionIdList}
 
 Report Content:
 ${JSON.stringify(report.content, null, 2)}
@@ -578,9 +665,11 @@ Return a JSON array of issues:
   {
     "category": "DATA_ACCURACY|FORMATTING|TERMINOLOGY|CONSISTENCY|CALCULATIONS|COMPLETENESS|REGULATORY",
     "severity": "CRITICAL|MAJOR|MINOR|INFO",
-    "section": "section-id or section name",
+    "section": "exact-section-id from the AVAILABLE SECTION IDs list above",
     "issue": "Description of the issue",
     "suggestion": "How to fix it"
   }
-]`
+]
+
+IMPORTANT: Use the exact section ID (like "exec-summary", "plasma-pk") from the list above, NOT the section title.`
 }

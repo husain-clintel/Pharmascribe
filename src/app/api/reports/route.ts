@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db/prisma'
-import { requireAuth } from '@/lib/auth/api-auth'
+import { requireAuth, optionalAuth } from '@/lib/auth/api-auth'
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,9 +37,16 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Require authentication
-    const { user, error } = await requireAuth(request)
-    if (error || !user) return error || NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    // Check authentication (optional for demo mode)
+    const { user, isDemo } = await optionalAuth(request)
+
+    // Require auth unless in demo mode
+    if (!user && !isDemo) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
 
     const body = await request.json()
 
@@ -60,7 +67,7 @@ export async function POST(request: NextRequest) {
       files
     } = body
 
-    // Create the report with user association
+    // Create the report with user association (optional for demo mode)
     const report = await prisma.report.create({
       data: {
         reportType,
@@ -77,7 +84,7 @@ export async function POST(request: NextRequest) {
         reviewedBy,
         approvedBy,
         status: 'DRAFT',
-        userId: user.id
+        ...(user ? { userId: user.id } : {})
       }
     })
 

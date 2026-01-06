@@ -26,7 +26,7 @@ export async function generateContent(
   const client = await getClaudeClient()
 
   const response = await client.messages.create({
-    model: 'claude-opus-4-5-20250114',
+    model: 'claude-sonnet-4-20250514',
     max_tokens: 8192,
     system: systemPrompt || 'You are an expert regulatory writer.',
     messages: [
@@ -45,7 +45,7 @@ export async function* streamContent(
   const client = await getClaudeClient()
 
   const stream = await client.messages.stream({
-    model: 'claude-opus-4-5-20250114',
+    model: 'claude-sonnet-4-20250514',
     max_tokens: 8192,
     system: systemPrompt || 'You are an expert regulatory writer.',
     messages: [

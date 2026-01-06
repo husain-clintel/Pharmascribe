@@ -4,7 +4,8 @@ import prisma from '@/lib/db/prisma'
 import { generateChatPrompt } from '@/lib/ai/prompts/pk-report'
 import { getContextMemories, storeDecision, parseMemoryContent } from '@/lib/agent/memory-client'
 import type { DecisionContent, FactContent } from '@/lib/agent/types'
-import { requireReportOwnership } from '@/lib/auth/api-auth'
+import { optionalReportOwnership } from '@/lib/auth/api-auth'
+import type { QCResult } from '@/types'
 
 // Increase timeout for AI chat with file context
 export const maxDuration = 120
@@ -16,8 +17,8 @@ export async function GET(
   const { id } = await params
 
   try {
-    // Check ownership
-    const { error: authError } = await requireReportOwnership(request, id)
+    // Check ownership (allows demo mode access)
+    const { error: authError } = await optionalReportOwnership(request, id)
     if (authError) return authError
 
     const messages = await prisma.chatMessage.findMany({
@@ -42,11 +43,11 @@ export async function POST(
   const { id } = await params
 
   try {
-    // Check ownership
-    const { error: authError } = await requireReportOwnership(request, id)
+    // Check ownership (allows demo mode access)
+    const { error: authError } = await optionalReportOwnership(request, id)
     if (authError) return authError
 
-    const { message } = await request.json()
+    const { message, qcFindings } = await request.json() as { message: string; qcFindings?: QCResult[] }
 
     // Get report with uploaded files for context
     const report = await prisma.report.findUnique({
@@ -112,10 +113,40 @@ export async function POST(
     // Generate response using Claude
     const anthropic = new Anthropic({ apiKey })
     const basePrompt = generateChatPrompt(report as any, message, chatHistory)
-    const prompt = memoryContext ? basePrompt + memoryContext : basePrompt
+    let prompt = memoryContext ? basePrompt + memoryContext : basePrompt
+
+    // Add structured QC findings context if present
+    if (qcFindings && qcFindings.length > 0) {
+      // Build section mapping for the AI to use correct IDs
+      const content = report.content as any
+      const sectionIdMap = content?.sections?.map((s: any) =>
+        `  "${s.title}" → "${s.id}"`
+      ).join('\n') || ''
+
+      const qcContext = `\n\n## QC ISSUES TO ADDRESS:\n\nThe user has selected the following QC issues to be fixed. You MUST address each one:\n\n${qcFindings.map((issue, i) => `${i + 1}. **[${issue.severity}] ${issue.category}**
+   - Section: ${issue.section}
+   - Issue: ${issue.issue}
+   ${issue.suggestion ? `- Suggestion: ${issue.suggestion}` : ''}
+   - Issue ID: ${issue.id}`).join('\n\n')}
+
+## SECTION ID MAPPING (use exact IDs from right column):
+${sectionIdMap}
+
+## IMPORTANT INSTRUCTIONS FOR QC FIX:
+1. Address EACH issue listed above
+2. For each fix, explain what you changed and why
+3. **CRITICAL**: Use the EXACT section IDs from the mapping above in your JSON changes
+4. For example, if fixing "Executive Summary", use "id": "exec-summary" (check the mapping)
+5. Make sure your changes are reflected in the JSON output
+6. After fixing, verify the section content no longer has the issue
+7. If an issue cannot be fixed automatically, explain why and suggest manual steps
+`
+      prompt = prompt + qcContext
+      console.log(`Including ${qcFindings.length} QC findings in prompt`)
+    }
 
     const response = await anthropic.messages.create({
-      model: 'claude-opus-4-5-20250114',
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 4096,
       messages: [{ role: 'user', content: prompt }]
     })
@@ -127,6 +158,7 @@ export async function POST(
     let madeChanges = false
     let metadata: any = null
     const changedSections: string[] = []
+    let plotConfig: any = null
 
     // Try multiple JSON block patterns
     const jsonPatterns = [
@@ -141,6 +173,30 @@ export async function POST(
       if (jsonMatch) break
     }
 
+    // Check if the JSON contains a plot configuration
+    if (jsonMatch) {
+      try {
+        const parsedJson = JSON.parse(jsonMatch[1])
+        if (parsedJson.plotType || parsedJson.type === 'plot') {
+          // This is a plot generation request
+          plotConfig = {
+            type: parsedJson.plotType || parsedJson.type || 'line',
+            title: parsedJson.title || 'Generated Plot',
+            xLabel: parsedJson.xLabel || parsedJson.xAxis || 'X',
+            yLabel: parsedJson.yLabel || parsedJson.yAxis || 'Y',
+            data: parsedJson.data || [],
+            showLegend: parsedJson.showLegend !== false,
+            semiLogY: parsedJson.semiLogY || false,
+            fileName: parsedJson.fileName
+          }
+          metadata = { ...metadata, plotConfig }
+          console.log('Plot configuration detected in response')
+        }
+      } catch (e) {
+        // Not a plot config, continue with normal processing
+      }
+    }
+
     if (jsonMatch) {
       try {
         const changes = JSON.parse(jsonMatch[1])
@@ -153,13 +209,30 @@ export async function POST(
           for (const change of changes.changes.sections) {
             if (!change.id || !change.content) continue
 
-            const sectionIndex = content.sections.findIndex(
+            // Try direct ID match first
+            let sectionIndex = content.sections.findIndex(
               (s: any) => s.id === change.id
             )
+
+            // If not found, try matching by normalized ID or title
+            if (sectionIndex < 0) {
+              const normalizedChangeId = change.id.toLowerCase().replace(/[^a-z0-9]/g, '')
+              sectionIndex = content.sections.findIndex(
+                (s: any) => {
+                  const normalizedSectionId = s.id?.toLowerCase().replace(/[^a-z0-9]/g, '') || ''
+                  const normalizedTitle = s.title?.toLowerCase().replace(/[^a-z0-9]/g, '') || ''
+                  return normalizedSectionId === normalizedChangeId || normalizedTitle === normalizedChangeId
+                }
+              )
+              if (sectionIndex >= 0) {
+                console.log(`Matched section by fuzzy match: ${change.id} -> ${content.sections[sectionIndex].id}`)
+              }
+            }
+
             if (sectionIndex >= 0) {
               content.sections[sectionIndex].content = change.content
-              changedSections.push(change.id)
-              console.log(`Updated section: ${change.id}`)
+              changedSections.push(content.sections[sectionIndex].id)
+              console.log(`Updated section: ${content.sections[sectionIndex].id}`)
             } else {
               console.log(`Section not found: ${change.id}`)
             }
@@ -269,6 +342,32 @@ export async function POST(
           madeChanges = true
           metadata = { changes: changedSections }
           console.log(`Applied changes to: ${changedSections.join(', ')}`)
+
+          // If QC findings were being addressed, mark them as FIXED
+          if (qcFindings && qcFindings.length > 0) {
+            try {
+              // Mark all the QC issues as FIXED since the agent addressed them
+              const qcIssueIds = qcFindings.map(f => f.id)
+              await prisma.qCResult.updateMany({
+                where: {
+                  id: { in: qcIssueIds },
+                  reportId: id,
+                  status: 'PENDING'
+                },
+                data: {
+                  status: 'FIXED',
+                  resolvedAt: new Date(),
+                  resolution: `Auto-fixed by AI agent. Changes applied to: ${changedSections.join(', ')}`
+                }
+              })
+              console.log(`Marked ${qcIssueIds.length} QC issues as FIXED`)
+
+              // Add fixed QC issue IDs to metadata
+              metadata.fixedQcIssues = qcIssueIds
+            } catch (qcError) {
+              console.error('Failed to update QC status:', qcError)
+            }
+          }
 
           // Store this as a decision in agent memory
           try {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db/prisma'
-import { requireReportOwnership, requireAuth } from '@/lib/auth/api-auth'
+import { optionalReportOwnership, requireReportOwnership } from '@/lib/auth/api-auth'
 
 // Whitelist of fields that can be updated
 const ALLOWED_UPDATE_FIELDS = [
@@ -28,8 +28,8 @@ export async function GET(
   const { id } = await params
 
   try {
-    // Check ownership
-    const { error } = await requireReportOwnership(request, id)
+    // Check ownership (allows demo mode access)
+    const { error } = await optionalReportOwnership(request, id)
     if (error) return error
 
     const report = await prisma.report.findUnique({
@@ -69,8 +69,8 @@ export async function PATCH(
   const { id } = await params
 
   try {
-    // Check ownership
-    const { error } = await requireReportOwnership(request, id)
+    // Check ownership (allows demo mode access)
+    const { error } = await optionalReportOwnership(request, id)
     if (error) return error
 
     const body = await request.json()

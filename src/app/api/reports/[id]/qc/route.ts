@@ -88,7 +88,7 @@ export async function POST(
     const prompt = generateQCPrompt(report as any)
 
     const response = await anthropic.messages.create({
-      model: 'claude-opus-4-5-20250114',
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 4096,
       messages: [{ role: 'user', content: prompt }]
     })

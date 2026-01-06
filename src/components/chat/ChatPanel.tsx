@@ -10,13 +10,26 @@ import {
   FileSpreadsheet, File, Mic, MicOff, Maximize2, Minimize2,
   Wand2, Check, RotateCcw, Copy, Clock, CheckCheck, GripHorizontal
 } from "lucide-react"
-import type { ChatMessage } from "@/types"
+import { Card, CardContent } from "@/components/ui/card"
+import type { ChatMessage, QCResult } from "@/types"
 import { ChatProgress } from "./ChatProgress"
+import dynamic from "next/dynamic"
+
+// Dynamically import PlotGenerator to avoid SSR issues with Plotly
+const PlotGenerator = dynamic(() => import("@/components/plots/PlotGenerator").then(mod => ({ default: mod.PlotGenerator })), {
+  ssr: false,
+  loading: () => <div className="h-[400px] flex items-center justify-center bg-gray-50 rounded-lg"><Loader2 className="h-8 w-8 animate-spin text-gray-400" /></div>
+})
 
 interface ChatPanelProps {
   reportId: string
   messages: ChatMessage[]
   onRefreshReport: () => void
+  initialPrompt?: string | null
+  onInitialPromptUsed?: () => void
+  qcFindings?: QCResult[] | null
+  onQcFindingsUsed?: () => void
+  isDemo?: boolean
 }
 
 interface UploadedFile {
@@ -54,8 +67,18 @@ function formatTime(date: Date): string {
 const CHATBOT_NAME = "Pharmascribe"
 const CHATBOT_TAGLINE = "Your AI Regulatory Writing Assistant"
 
-export function ChatPanel({ reportId, messages: initialMessages, onRefreshReport }: ChatPanelProps) {
+
+export function ChatPanel({ reportId, messages: initialMessages, onRefreshReport, initialPrompt, onInitialPromptUsed, qcFindings, onQcFindingsUsed, isDemo = false }: ChatPanelProps) {
+  // Helper to get headers with demo mode
+  const getHeaders = (contentType = true): Record<string, string> => {
+    const headers: Record<string, string> = {}
+    if (contentType) headers['Content-Type'] = 'application/json'
+    if (isDemo) headers['x-demo-mode'] = 'true'
+    return headers
+  }
+
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages)
+  const [pendingQcFindings, setPendingQcFindings] = useState<QCResult[] | null>(qcFindings || null)
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
@@ -125,6 +148,26 @@ export function ChatPanel({ reportId, messages: initialMessages, onRefreshReport
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [messages])
+
+  // Sync qcFindings prop with state
+  useEffect(() => {
+    if (qcFindings && qcFindings.length > 0) {
+      setPendingQcFindings(qcFindings)
+    }
+  }, [qcFindings])
+
+  // Auto-send initial prompt (e.g., from QC fix flow)
+  const initialPromptSentRef = useRef(false)
+  useEffect(() => {
+    if (initialPrompt && !initialPromptSentRef.current && !loading) {
+      initialPromptSentRef.current = true
+      // Small delay to ensure component is fully mounted
+      setTimeout(() => {
+        handleSend(initialPrompt)
+        onInitialPromptUsed?.()
+      }, 500)
+    }
+  }, [initialPrompt])
 
   // Resize handlers for draggable textarea
   const handleResizeStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
@@ -212,6 +255,7 @@ export function ChatPanel({ reportId, messages: initialMessages, onRefreshReport
 
         const res = await fetch('/api/upload', {
           method: 'POST',
+          headers: getHeaders(false),
           body: formData
         })
 
@@ -263,7 +307,7 @@ export function ChatPanel({ reportId, messages: initialMessages, onRefreshReport
     try {
       const res = await fetch('/api/enhance-prompt', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ prompt: input.trim() })
       })
 
@@ -315,10 +359,19 @@ export function ChatPanel({ reportId, messages: initialMessages, onRefreshReport
     setMessages(prev => [...prev, userMessage])
 
     try {
+      // Include QC findings if present (from QC fix flow)
+      const requestBody: { message: string; qcFindings?: QCResult[] } = { message: text }
+      if (pendingQcFindings && pendingQcFindings.length > 0) {
+        requestBody.qcFindings = pendingQcFindings
+        // Clear pending QC findings after including in request
+        setPendingQcFindings(null)
+        onQcFindingsUsed?.()
+      }
+
       const res = await fetch(`/api/reports/${reportId}/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text })
+        headers: getHeaders(),
+        body: JSON.stringify(requestBody)
       })
 
       if (res.ok) {
@@ -397,29 +450,31 @@ export function ChatPanel({ reportId, messages: initialMessages, onRefreshReport
       </div>
 
       {/* Chat Messages */}
-      <ScrollArea className={`flex-1 p-4 ${isExpanded ? 'max-h-[calc(100vh-220px)]' : ''}`} ref={scrollRef}>
+      <ScrollArea className={`flex-1 p-4 ${isExpanded ? 'max-h-[calc(100vh-220px)]' : 'min-h-[600px]'}`} ref={scrollRef}>
         {messages.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ff6b6b] to-[#ff8e53] mx-auto mb-4 shadow-lg shadow-red-200/50">
-              <Bot className="h-8 w-8 text-white" />
-            </div>
-            <h3 className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53] mb-2">{CHATBOT_NAME}</h3>
-            <p className="text-gray-500 mb-6 max-w-sm mx-auto text-sm">
-              I'm your AI regulatory writing assistant. Ask me to analyze your data, refine sections, or answer questions about your protocol.
-            </p>
+          <div className="flex flex-col items-center justify-center min-h-[500px]">
+            <div className="text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ff6b6b] to-[#ff8e53] mx-auto mb-4 shadow-lg shadow-red-200/50">
+                <Bot className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53] mb-2">{CHATBOT_NAME}</h3>
+              <p className="text-gray-500 mb-6 max-w-sm mx-auto text-sm">
+                I'm your AI regulatory writing assistant. Ask me to analyze your data, refine sections, or answer questions about your protocol.
+              </p>
 
-            <div className="space-y-2 max-w-md mx-auto">
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Quick prompts</p>
-              {SUGGESTIONS.map((suggestion, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleSend(suggestion)}
-                  className="w-full text-left px-4 py-2.5 rounded-lg border border-gray-200 hover:border-[#ff6b6b]/50 hover:bg-red-50 transition-all text-sm text-gray-700 hover:text-[#ff6b6b] flex items-center gap-2 group"
-                >
-                  <Wand2 className="h-3.5 w-3.5 text-gray-400 group-hover:text-[#ff6b6b]" />
-                  {suggestion}
-                </button>
-              ))}
+              <div className="space-y-2 max-w-md mx-auto mb-8">
+                <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Quick prompts</p>
+                {SUGGESTIONS.map((suggestion, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleSend(suggestion)}
+                    className="w-full text-left px-4 py-2.5 rounded-lg border border-gray-200 hover:border-[#ff6b6b]/50 hover:bg-red-50 transition-all text-sm text-gray-700 hover:text-[#ff6b6b] flex items-center gap-2 group"
+                  >
+                    <Wand2 className="h-3.5 w-3.5 text-gray-400 group-hover:text-[#ff6b6b]" />
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         ) : (
@@ -451,6 +506,19 @@ export function ChatPanel({ reportId, messages: initialMessages, onRefreshReport
                       }`}>
                         <Check className="h-3 w-3 inline mr-1" />
                         Changes applied to: {(message.metadata as any).changes.join(', ')}
+                      </div>
+                    )}
+                    {message.metadata && (message.metadata as any).plotConfig && (
+                      <div className="mt-3">
+                        <PlotGenerator
+                          config={(message.metadata as any).plotConfig}
+                          reportId={reportId}
+                          isDemo={isDemo}
+                          onAddToReport={() => {
+                            onRefreshReport()
+                            toast.success('Plot added to report data')
+                          }}
+                        />
                       </div>
                     )}
                   </div>

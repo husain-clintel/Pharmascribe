@@ -1,4 +1,5 @@
 import type { Report, ExtractedContext } from '@/types'
+import type { GenerationAnswers } from './pk-report'
 
 export const PHARMACOLOGY_REPORT_SYSTEM_PROMPT = `You are an expert pharmacologist and regulatory writer generating IND (Investigational New Drug) Pharmacology Study Reports.
 
@@ -43,7 +44,41 @@ BACK MATTER (Unnumbered):
 - References
 - Appendices (Individual animal data, supplementary analyses)`
 
-export function generatePharmacologyReportPrompt(report: Report, context: ExtractedContext | null): string {
+export function generatePharmacologyReportPrompt(report: Report, context: ExtractedContext | null, generationAnswers?: GenerationAnswers): string {
+  // Build user response instructions from dynamic questionnaire answers
+  let contextInstructions = ''
+  if (generationAnswers && Object.keys(generationAnswers).length > 0) {
+    const answersList = Object.entries(generationAnswers)
+      .filter(([_, value]) => {
+        if (Array.isArray(value)) return value.length > 0
+        return typeof value === 'string' && value.trim() !== ''
+      })
+      .map(([questionId, value]) => {
+        const displayValue = Array.isArray(value) ? value.join(', ') : value
+        return `- ${questionId}: ${displayValue}`
+      })
+      .join('\n')
+
+    if (answersList) {
+      contextInstructions = `
+==============================================================================
+USER-PROVIDED CONTEXT AND PREFERENCES - FOLLOW THESE INSTRUCTIONS CAREFULLY
+==============================================================================
+
+The user answered the following questions about how they want this report generated.
+Incorporate these answers into the report content, structure, and emphasis:
+
+${answersList}
+
+Use these responses to:
+1. Emphasize the findings and aspects the user indicated are important
+2. Address any limitations or concerns they mentioned
+3. Structure the discussion around their specified priorities
+4. Include any specific details or context they provided
+`
+    }
+  }
+
   return `Generate a Pharmacology Study Report based on the following study information:
 
 STUDY METADATA:
@@ -58,13 +93,22 @@ AUTHOR INFORMATION:
 - Prepared by: ${report.preparedBy || 'Not specified'}
 - Reviewed by: ${report.reviewedBy || 'Not specified'}
 - Approved by: ${report.approvedBy || 'Not specified'}
-
+${contextInstructions}
 ${context ? `
 EXTRACTED DATA CONTEXT:
 ${JSON.stringify(context, null, 2)}
 ` : 'No data files were uploaded.'}
 
-Generate a comprehensive pharmacology report draft. Return the response as a JSON object with this EXACT structure:
+Generate a comprehensive pharmacology report draft.
+
+CRITICAL OUTPUT FORMAT INSTRUCTIONS:
+- Return ONLY a valid JSON object - no markdown code blocks, no explanatory text
+- Do NOT wrap the JSON in triple backtick code blocks
+- Start your response directly with { and end with }
+- All content strings should contain plain text, NOT JSON syntax
+- Use proper newlines in content as actual line breaks
+
+Return the response as a JSON object with this EXACT structure:
 
 {
   "frontMatter": {

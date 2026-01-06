@@ -12,11 +12,31 @@ function renderContent(content: any): string {
     return ''
   }
   if (typeof content === 'string') {
-    return content
+    // Clean up any JSON artifacts that might have slipped through
+    let cleaned = content
+      // Remove markdown code block syntax
+      .replace(/```(?:json)?\s*/g, '')
+      .replace(/```\s*/g, '')
+      // Clean escaped newlines
+      .replace(/\\n/g, '\n')
+      // Remove JSON-like patterns that shouldn't be in text
+      .replace(/^\s*\{[\s\S]*\}\s*$/g, (match) => {
+        // If the entire content looks like JSON, try to extract meaningful text
+        try {
+          const parsed = JSON.parse(match)
+          if (parsed.content) return renderContent(parsed.content)
+          if (parsed.text) return parsed.text
+          return '[Content error - invalid format]'
+        } catch {
+          return match // Not valid JSON, keep as is
+        }
+      })
+      .trim()
+    return cleaned
   }
   if (typeof content === 'object') {
     // If it's an object, try to extract text or stringify nicely
-    if (content.text) return content.text
+    if (content.text) return renderContent(content.text)
     if (content.content) return renderContent(content.content)
     if (Array.isArray(content)) {
       return content.map(item =>

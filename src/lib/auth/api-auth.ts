@@ -128,6 +128,31 @@ export async function requireAuth(request: NextRequest): Promise<{
   }
 }
 
+// Optional auth - returns user if authenticated, null if not (no error)
+// Useful for demo mode where auth is optional
+export async function optionalAuth(request: NextRequest): Promise<{
+  user: { id: string; email: string; role: string } | null
+  isDemo: boolean
+}> {
+  // Check if this is a demo request
+  const isDemo = request.headers.get('x-demo-mode') === 'true'
+
+  const user = await getUserFromRequest(request)
+
+  if (user) {
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role
+      },
+      isDemo: false
+    }
+  }
+
+  return { user: null, isDemo }
+}
+
 // Check if user is admin
 export async function requireAdmin(request: NextRequest): Promise<{
   user: { id: string; email: string; role: string } | null
@@ -201,4 +226,81 @@ export async function requireReportOwnership(
   }
 
   return { user, report, error: null }
+}
+
+// Optional report ownership check - allows demo mode access
+// For demo reports (no userId), allows access if x-demo-mode header is set
+export async function optionalReportOwnership(
+  request: NextRequest,
+  reportId: string
+): Promise<{
+  user: { id: string; email: string; role: string } | null
+  report: any | null
+  isDemo: boolean
+  error: NextResponse | null
+}> {
+  const isDemo = request.headers.get('x-demo-mode') === 'true'
+  const user = await getUserFromRequest(request)
+
+  // If user is authenticated, use normal ownership check
+  if (user) {
+    // Admins can access any report
+    if (user.role === 'ADMIN') {
+      const report = await prisma.report.findUnique({
+        where: { id: reportId }
+      })
+
+      if (!report) {
+        return {
+          user: { id: user.id, email: user.email, role: user.role },
+          report: null,
+          isDemo: false,
+          error: NextResponse.json({ error: 'Report not found' }, { status: 404 })
+        }
+      }
+
+      return { user: { id: user.id, email: user.email, role: user.role }, report, isDemo: false, error: null }
+    }
+
+    // Regular users can only access their own reports
+    const report = await prisma.report.findFirst({
+      where: {
+        id: reportId,
+        userId: user.id
+      }
+    })
+
+    if (!report) {
+      return {
+        user: { id: user.id, email: user.email, role: user.role },
+        report: null,
+        isDemo: false,
+        error: NextResponse.json({ error: 'Report not found or access denied' }, { status: 404 })
+      }
+    }
+
+    return { user: { id: user.id, email: user.email, role: user.role }, report, isDemo: false, error: null }
+  }
+
+  // Not authenticated - check if demo mode and report is a demo report (no userId)
+  if (isDemo) {
+    const report = await prisma.report.findFirst({
+      where: {
+        id: reportId,
+        userId: null // Demo reports have no userId
+      }
+    })
+
+    if (report) {
+      return { user: null, report, isDemo: true, error: null }
+    }
+  }
+
+  // No auth and not a valid demo scenario
+  return {
+    user: null,
+    report: null,
+    isDemo,
+    error: NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+  }
 }

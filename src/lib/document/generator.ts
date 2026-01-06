@@ -55,6 +55,104 @@ const FONT_SIZE_FOOTNOTE = 16 // 8pt
 const TABLE_HEADER_COLOR = 'E6E6E6'
 const TABLE_ALT_ROW_COLOR = 'F2F2F2'
 
+// Parse markdown text and convert to TextRun array
+function parseMarkdownToTextRuns(text: string, fontSize: number = FONT_SIZE, baseItalics: boolean = false): TextRun[] {
+  const runs: TextRun[] = []
+
+  // Pattern to match **bold**, *italic*, ***bold italic***, and ~~strikethrough~~
+  const pattern = /(\*\*\*(.+?)\*\*\*|\*\*(.+?)\*\*|\*(.+?)\*|~~(.+?)~~)/g
+
+  let lastIndex = 0
+  let match
+
+  while ((match = pattern.exec(text)) !== null) {
+    // Add text before the match as regular text
+    if (match.index > lastIndex) {
+      const beforeText = text.slice(lastIndex, match.index)
+      if (beforeText) {
+        runs.push(new TextRun({
+          text: beforeText,
+          font: FONT_NAME,
+          size: fontSize,
+          italics: baseItalics,
+          color: '000000'
+        }))
+      }
+    }
+
+    // Determine formatting based on match
+    if (match[2]) {
+      // ***bold italic***
+      runs.push(new TextRun({
+        text: match[2],
+        font: FONT_NAME,
+        size: fontSize,
+        bold: true,
+        italics: true,
+        color: '000000'
+      }))
+    } else if (match[3]) {
+      // **bold**
+      runs.push(new TextRun({
+        text: match[3],
+        font: FONT_NAME,
+        size: fontSize,
+        bold: true,
+        italics: baseItalics,
+        color: '000000'
+      }))
+    } else if (match[4]) {
+      // *italic*
+      runs.push(new TextRun({
+        text: match[4],
+        font: FONT_NAME,
+        size: fontSize,
+        italics: true,
+        color: '000000'
+      }))
+    } else if (match[5]) {
+      // ~~strikethrough~~
+      runs.push(new TextRun({
+        text: match[5],
+        font: FONT_NAME,
+        size: fontSize,
+        strike: true,
+        italics: baseItalics,
+        color: '000000'
+      }))
+    }
+
+    lastIndex = pattern.lastIndex
+  }
+
+  // Add remaining text after last match
+  if (lastIndex < text.length) {
+    const remainingText = text.slice(lastIndex)
+    if (remainingText) {
+      runs.push(new TextRun({
+        text: remainingText,
+        font: FONT_NAME,
+        size: fontSize,
+        italics: baseItalics,
+        color: '000000'
+      }))
+    }
+  }
+
+  // If no matches were found, return the original text
+  if (runs.length === 0) {
+    runs.push(new TextRun({
+      text: text,
+      font: FONT_NAME,
+      size: fontSize,
+      italics: baseItalics,
+      color: '000000'
+    }))
+  }
+
+  return runs
+}
+
 // Counters for table and figure numbering
 let tableCounter = 0
 let figureCounter = 0
@@ -183,14 +281,7 @@ export async function generateDocx(report: Report & { uploadedFiles?: UploadedFi
       for (const para of paragraphs) {
         children.push(
           new Paragraph({
-            children: [
-              new TextRun({
-                text: para.trim(),
-                font: FONT_NAME,
-                size: FONT_SIZE,
-                color: '000000'
-              })
-            ],
+            children: parseMarkdownToTextRuns(para.trim()),
             alignment: AlignmentType.JUSTIFIED,
             spacing: { after: 120 }
           })
@@ -862,14 +953,7 @@ function buildTable(table: any): any[] {
               new TableCell({
                 children: [
                   new Paragraph({
-                    children: [
-                      new TextRun({
-                        text: cell || '',
-                        font: FONT_NAME,
-                        size: FONT_SIZE_SMALL,
-                        color: '000000'
-                      })
-                    ],
+                    children: parseMarkdownToTextRuns(cell || '', FONT_SIZE_SMALL),
                     alignment: cellIndex === 0 ? AlignmentType.LEFT : AlignmentType.CENTER
                   })
                 ],
@@ -897,15 +981,7 @@ function buildTable(table: any): any[] {
     for (const footnote of table.footnotes) {
       result.push(
         new Paragraph({
-          children: [
-            new TextRun({
-              text: footnote,
-              font: FONT_NAME,
-              size: FONT_SIZE_FOOTNOTE,
-              italics: true,
-              color: '000000'
-            })
-          ],
+          children: parseMarkdownToTextRuns(footnote, FONT_SIZE_FOOTNOTE, true),
           spacing: { before: 60, after: 60 }
         })
       )

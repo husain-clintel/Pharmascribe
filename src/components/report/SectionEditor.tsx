@@ -13,11 +13,31 @@ function contentToString(content: any): string {
     return ''
   }
   if (typeof content === 'string') {
-    return content
+    // Clean up any JSON artifacts that might have slipped through
+    let cleaned = content
+      // Remove markdown code block syntax
+      .replace(/```(?:json)?\s*/g, '')
+      .replace(/```\s*/g, '')
+      // Clean escaped newlines
+      .replace(/\\n/g, '\n')
+      // Remove JSON-like patterns that shouldn't be in text
+      .replace(/^\s*\{[\s\S]*\}\s*$/g, (match) => {
+        // If the entire content looks like JSON, try to extract meaningful text
+        try {
+          const parsed = JSON.parse(match)
+          if (parsed.content) return contentToString(parsed.content)
+          if (parsed.text) return parsed.text
+          return match // Keep original if no known text field
+        } catch {
+          return match // Not valid JSON, keep as is
+        }
+      })
+      .trim()
+    return cleaned
   }
   if (typeof content === 'object') {
     // Try to extract text from common patterns
-    if (content.text) return content.text
+    if (content.text) return contentToString(content.text)
     if (content.content) return contentToString(content.content)
     if (Array.isArray(content)) {
       return content.map(item =>
@@ -84,9 +104,20 @@ export function SectionEditor({
     return editingContent[sectionId] !== undefined
   }
 
+  // Filter out sections that are heading-only (empty content parent sections)
+  // but keep them if they have actual content
+  const displaySections = sections.filter(section => {
+    const content = contentToString(section.content)
+    // Keep section if it has content, or if it's not a parent heading section
+    if (content && content.trim() !== '') return true
+    // Hide empty parent sections (level 1 sections like Introduction, Methods, Results)
+    // These are heading-only sections with subsections containing the actual content
+    return false
+  })
+
   return (
     <div className="space-y-4">
-      {sections.map((section, index) => (
+      {displaySections.map((section, index) => (
         <Card
           key={section.id}
           className={`transition-all ${
@@ -155,7 +186,7 @@ export function SectionEditor({
         </Card>
       ))}
 
-      {sections.length === 0 && (
+      {displaySections.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
           <p>No sections available. Generate the report first.</p>
         </div>

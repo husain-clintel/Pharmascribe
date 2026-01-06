@@ -3,7 +3,12 @@ import Anthropic from '@anthropic-ai/sdk'
 import prisma from '@/lib/db/prisma'
 import { PK_REPORT_SYSTEM_PROMPT, generateReportPrompt } from '@/lib/ai/prompts/pk-report'
 import { PHARMACOLOGY_REPORT_SYSTEM_PROMPT, generatePharmacologyReportPrompt } from '@/lib/ai/prompts/pharmacology-report'
-import { requireReportOwnership } from '@/lib/auth/api-auth'
+import { optionalReportOwnership } from '@/lib/auth/api-auth'
+
+// Type for dynamic generation answers
+interface GenerationAnswers {
+  [questionId: string]: string | string[]
+}
 
 // Increase timeout for AI generation (5 minutes for Pro plan)
 export const maxDuration = 300
@@ -15,8 +20,17 @@ export async function POST(
   const { id } = await params
 
   try {
-    // Check ownership
-    const { error: authError } = await requireReportOwnership(request, id)
+    // Extract generation answers from request body
+    let generationAnswers: GenerationAnswers | undefined
+    try {
+      const body = await request.json()
+      generationAnswers = body.generationAnswers
+    } catch {
+      // No body or invalid JSON - that's fine, answers are optional
+    }
+
+    // Check ownership (allows demo mode access)
+    const { error: authError } = await optionalReportOwnership(request, id)
     if (authError) return authError
 
     // Get report with files
@@ -82,17 +96,17 @@ export async function POST(
     switch (report.reportType) {
       case 'PHARMACOLOGY':
         systemPrompt = PHARMACOLOGY_REPORT_SYSTEM_PROMPT
-        prompt = generatePharmacologyReportPrompt(report as any, context)
+        prompt = generatePharmacologyReportPrompt(report as any, context, generationAnswers)
         break
       case 'PK_REPORT':
       default:
         systemPrompt = PK_REPORT_SYSTEM_PROMPT
-        prompt = generateReportPrompt(report as any, context)
+        prompt = generateReportPrompt(report as any, context, generationAnswers)
         break
     }
 
     const response = await anthropic.messages.create({
-      model: 'claude-opus-4-5-20250114',
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 8192,
       system: systemPrompt,
       messages: [{ role: 'user', content: prompt }]
@@ -101,14 +115,95 @@ export async function POST(
     const textBlock = response.content.find(block => block.type === 'text')
     const text = textBlock ? textBlock.text : ''
 
-    // Parse JSON from response
+    // Parse JSON from response - try multiple extraction methods
     let content
     try {
-      const jsonMatch = text.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        content = JSON.parse(jsonMatch[0])
-      } else {
+      let jsonStr = ''
+
+      // Method 1: Look for JSON in markdown code block
+      const codeBlockMatch = text.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/)
+      if (codeBlockMatch) {
+        jsonStr = codeBlockMatch[1].trim()
+      }
+
+      // Method 2: Try to find a balanced JSON object starting with { and ending with }
+      if (!jsonStr) {
+        // Find the first { and try to extract balanced JSON
+        const startIdx = text.indexOf('{')
+        if (startIdx !== -1) {
+          let depth = 0
+          let endIdx = -1
+          let inString = false
+          let escapeNext = false
+
+          for (let i = startIdx; i < text.length; i++) {
+            const char = text[i]
+
+            if (escapeNext) {
+              escapeNext = false
+              continue
+            }
+
+            if (char === '\\' && inString) {
+              escapeNext = true
+              continue
+            }
+
+            if (char === '"' && !escapeNext) {
+              inString = !inString
+              continue
+            }
+
+            if (!inString) {
+              if (char === '{') depth++
+              if (char === '}') {
+                depth--
+                if (depth === 0) {
+                  endIdx = i
+                  break
+                }
+              }
+            }
+          }
+
+          if (endIdx !== -1) {
+            jsonStr = text.slice(startIdx, endIdx + 1)
+          }
+        }
+      }
+
+      // Method 3: Fallback to simple regex (original method)
+      if (!jsonStr) {
+        const jsonMatch = text.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          jsonStr = jsonMatch[0]
+        }
+      }
+
+      if (!jsonStr) {
         throw new Error('No JSON found in response')
+      }
+
+      content = JSON.parse(jsonStr)
+
+      // Post-process: Clean up any JSON artifacts in section content
+      if (content.sections && Array.isArray(content.sections)) {
+        content.sections = content.sections.map((section: any) => {
+          if (typeof section.content === 'string') {
+            // Remove any stray JSON-like patterns that shouldn't be in content
+            let cleaned = section.content
+              // Remove markdown code block syntax if accidentally included
+              .replace(/```(?:json)?\s*/g, '')
+              .replace(/```\s*/g, '')
+              // Clean up escaped newlines that should be actual newlines
+              .replace(/\\n/g, '\n')
+              // Remove any JSON object patterns that look like {\"key\": \"value\"}
+              .replace(/\{\\?"[^"]+\\?":\s*\\?"[^"]*\\?"(?:,\s*\\?"[^"]+\\?":\s*\\?"[^"]*\\?")*\\?\}/g, '')
+              .trim()
+            return { ...section, content: cleaned }
+          }
+          return section
+        })
       }
     } catch (parseError) {
       console.error('Failed to parse AI response:', parseError)

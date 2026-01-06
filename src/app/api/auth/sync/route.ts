@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Try to find existing user
+    // Try to find existing user by cognitoId first, then by email
     let user = await prisma.user.findUnique({
       where: { cognitoId }
     })
@@ -39,18 +39,34 @@ export async function POST(request: NextRequest) {
         }
       })
     } else {
-      // Check if this is an admin user based on environment config
-      const isAdmin = ADMIN_EMAILS.includes(email.toLowerCase())
-
-      // Create new user
-      user = await prisma.user.create({
-        data: {
-          cognitoId,
-          email,
-          name,
-          role: isAdmin ? 'ADMIN' : 'USER'
-        }
+      // Check if user exists by email (handles Cognito user recreation)
+      const existingUserByEmail = await prisma.user.findUnique({
+        where: { email }
       })
+
+      if (existingUserByEmail) {
+        // Update the cognitoId for existing user (user was recreated in Cognito)
+        user = await prisma.user.update({
+          where: { email },
+          data: {
+            cognitoId,
+            ...(name && { name })
+          }
+        })
+      } else {
+        // Check if this is an admin user based on environment config
+        const isAdmin = ADMIN_EMAILS.includes(email.toLowerCase())
+
+        // Create new user
+        user = await prisma.user.create({
+          data: {
+            cognitoId,
+            email,
+            name,
+            role: isAdmin ? 'ADMIN' : 'USER'
+          }
+        })
+      }
     }
 
     return NextResponse.json({

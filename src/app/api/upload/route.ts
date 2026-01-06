@@ -2,16 +2,23 @@ import { NextRequest, NextResponse } from 'next/server'
 import { put } from '@vercel/blob'
 import prisma from '@/lib/db/prisma'
 import Papa from 'papaparse'
-import { requireAuth } from '@/lib/auth/api-auth'
+import { optionalAuth } from '@/lib/auth/api-auth'
 
 // Increase timeout for file processing
 export const maxDuration = 60
 
 export async function POST(request: NextRequest) {
   try {
-    // Require authentication for file uploads
-    const { user, error: authError } = await requireAuth(request)
-    if (authError) return authError
+    // Check authentication (optional for demo mode)
+    const { user, isDemo } = await optionalAuth(request)
+
+    // Require auth unless in demo mode
+    if (!user && !isDemo) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
 
     const formData = await request.formData()
     const file = formData.get('file') as File
@@ -37,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     // Validate file type (whitelist approach)
     const ALLOWED_EXTENSIONS = [
-      '.csv', '.xlsx', '.xls', '.txt', '.pdf',
+      '.csv', '.xlsx', '.xls', '.txt', '.pdf', '.doc', '.docx',
       '.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'
     ]
     const fileExt = '.' + file.name.split('.').pop()?.toLowerCase()
@@ -180,6 +187,31 @@ export async function POST(request: NextRequest) {
             content: 'PDF text extraction failed - file stored for reference. Error: ' + (e?.message || String(e)),
             error: String(e)
           }
+        }
+      }
+    }
+
+    // Handle Word documents (.docx, .doc)
+    else if (file.name.endsWith('.docx') || file.name.endsWith('.doc') ||
+             file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+             file.type === 'application/msword') {
+      try {
+        const mammoth = await import('mammoth')
+        const arrayBuffer = await file.arrayBuffer()
+        const result = await mammoth.extractRawText({ arrayBuffer })
+
+        extractedData = {
+          type: 'docx',
+          content: result.value.slice(0, 150000), // Limit to 150k chars for protocols
+          charCount: result.value.length
+        }
+      } catch (e: any) {
+        console.error('DOCX parsing error:', e)
+        // Store basic info if parsing fails
+        extractedData = {
+          type: 'docx',
+          content: 'DOCX text extraction failed - file stored for reference. Error: ' + (e?.message || String(e)),
+          error: String(e)
         }
       }
     }

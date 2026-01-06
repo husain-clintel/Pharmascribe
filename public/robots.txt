@@ -1,0 +1,43 @@
+# Robots.txt for Pharmascribe AI
+# https://www.pharmascribeai.com
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /reports/*/qc
+Disallow: /_next/
+
+# Allow search engine crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+# Allow AI/LLM crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Anthropic-AI
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Cohere-ai
+Allow: /
+
+# Sitemap location
+Sitemap: https://www.pharmascribeai.com/sitemap.xml
+
+# LLMs.txt location (AI crawler information)
+# See: https://www.pharmascribeai.com/llms.txt

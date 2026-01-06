@@ -30,7 +30,9 @@ import {
   Loader2,
   FileUp,
   CheckCircle2,
-  Pill
+  Pill,
+  Download,
+  Play
 } from "lucide-react"
 import { REPORT_TYPES, type ReportType } from "@/types"
 import { FileUploader } from "@/components/upload/FileUploader"
@@ -84,6 +86,7 @@ function NewReportContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialType = searchParams.get('type') as ReportType | null
+  const isDemo = searchParams.get('demo') === 'true'
 
   // Auto-logout after 1 hour of inactivity
   useInactivityLogout()
@@ -95,9 +98,11 @@ function NewReportContent() {
   const [protocolFile, setProtocolFile] = useState<UploadedFile | null>(null)
   const [dataFiles, setDataFiles] = useState<UploadedFile[]>([])
   const [extractionError, setExtractionError] = useState<string | null>(null)
+  const [loadingSampleProtocol, setLoadingSampleProtocol] = useState(false)
+  const [loadingSampleData, setLoadingSampleData] = useState(false)
 
   const [formData, setFormData] = useState<FormData>({
-    reportType: initialType || "",
+    reportType: initialType || (isDemo ? "PK_REPORT" as ReportType : ""),
     studyId: "",
     reportNumber: "",
     reportTitle: "",
@@ -148,7 +153,8 @@ function NewReportContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           protocolContent,
-          filename: file.filename
+          filename: file.filename,
+          reportType: formData.reportType
         })
       })
 
@@ -197,6 +203,120 @@ function NewReportContent() {
     setExtractionError(null)
   }
 
+  const loadSampleProtocol = async () => {
+    setLoadingSampleProtocol(true)
+    setExtractionError(null)
+
+    try {
+      // Fetch the sample protocol file
+      const response = await fetch('/sample-data/theophylline_study_protocol.docx')
+      if (!response.ok) {
+        throw new Error('Failed to fetch sample protocol')
+      }
+
+      const blob = await response.blob()
+      const file = new File([blob], 'theophylline_study_protocol.docx', {
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      })
+
+      // Upload the file through our API
+      const formDataUpload = new FormData()
+      formDataUpload.append('file', file)
+      formDataUpload.append('fileType', 'PROTOCOL')
+
+      const uploadRes = await fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          'x-demo-mode': 'true'
+        },
+        body: formDataUpload
+      })
+
+      if (!uploadRes.ok) {
+        const error = await uploadRes.json()
+        throw new Error(error.error || 'Failed to upload sample protocol')
+      }
+
+      const uploadedFile = await uploadRes.json()
+      setProtocolFile(uploadedFile)
+
+      // Extract metadata from the sample protocol
+      if (uploadedFile.extractedData?.content && !uploadedFile.extractedData?.error) {
+        await extractMetadataFromProtocol(uploadedFile)
+      } else {
+        // If DOCX extraction didn't work, use the text summary
+        const textResponse = await fetch('/sample-data/theophylline_protocol_summary.txt')
+        if (textResponse.ok) {
+          const textContent = await textResponse.text()
+          // Create a mock file object with the text content
+          const mockFile = {
+            ...uploadedFile,
+            extractedData: { content: textContent }
+          }
+          await extractMetadataFromProtocol(mockFile)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load sample protocol:', error)
+      setExtractionError(error instanceof Error ? error.message : 'Failed to load sample protocol')
+    } finally {
+      setLoadingSampleProtocol(false)
+    }
+  }
+
+  const loadSampleData = async () => {
+    setLoadingSampleData(true)
+
+    try {
+      const sampleFiles = [
+        { path: '/sample-data/theophylline_nca_parameters.csv', name: 'theophylline_nca_parameters.csv', type: 'NCA_PARAMETERS', mimeType: 'text/csv' },
+        { path: '/sample-data/theophylline_concentration_time.csv', name: 'theophylline_concentration_time.csv', type: 'CONCENTRATION_DATA', mimeType: 'text/csv' },
+        { path: '/sample-data/figures/individual_concentration_time.png', name: 'Figure_1_Individual_Concentration_Time.png', type: 'FIGURE', mimeType: 'image/png' },
+        { path: '/sample-data/figures/mean_concentration_time.png', name: 'Figure_2_Mean_Concentration_Time.png', type: 'FIGURE', mimeType: 'image/png' },
+        { path: '/sample-data/figures/spaghetti_semilog.png', name: 'Figure_3_Semilog_Concentration_Time.png', type: 'FIGURE', mimeType: 'image/png' }
+      ]
+
+      const uploadedFiles: UploadedFile[] = []
+
+      for (const sampleFile of sampleFiles) {
+        const response = await fetch(sampleFile.path)
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ${sampleFile.name}`)
+        }
+
+        const blob = await response.blob()
+        const file = new File([blob], sampleFile.name, { type: sampleFile.mimeType })
+
+        const formDataUpload = new FormData()
+        formDataUpload.append('file', file)
+        formDataUpload.append('fileType', sampleFile.type)
+
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          headers: {
+            'x-demo-mode': 'true'
+          },
+          body: formDataUpload
+        })
+
+        if (!uploadRes.ok) {
+          const error = await uploadRes.json()
+          throw new Error(error.error || `Failed to upload ${sampleFile.name}`)
+        }
+
+        const uploaded = await uploadRes.json()
+        uploadedFiles.push(uploaded)
+      }
+
+      setDataFiles(prev => [...prev, ...uploadedFiles])
+    } catch (error) {
+      console.error('Failed to load sample data:', error)
+      alert(error instanceof Error ? error.message : 'Failed to load sample data')
+    } finally {
+      setLoadingSampleData(false)
+    }
+  }
+
   const canProceed = () => {
     switch (currentStep) {
       case 1:
@@ -235,9 +355,14 @@ function NewReportContent() {
         ...dataFiles.map(f => f.id)
       ]
 
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (isDemo) {
+        headers['x-demo-mode'] = 'true'
+      }
+
       const res = await fetch('/api/reports', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           ...formData,
           files: allFiles
@@ -246,7 +371,8 @@ function NewReportContent() {
 
       if (res.ok) {
         const report = await res.json()
-        router.push(`/reports/${report.id}`)
+        // Pass demo flag to report page if in demo mode
+        router.push(`/reports/${report.id}${isDemo ? '?demo=true' : ''}`)
       } else {
         alert('Failed to create report')
       }
@@ -310,38 +436,64 @@ function NewReportContent() {
             <div>
               <h2 className="text-xl font-semibold mb-4">Select Report Type</h2>
               <p className="text-muted-foreground mb-6">
-                Choose the type of IND report you want to generate
+                {isDemo
+                  ? "Demo mode: PK Report is pre-selected. Try the full workflow with our sample data!"
+                  : "Choose the type of IND report you want to generate"
+                }
               </p>
+              {isDemo && (
+                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-blue-800">
+                    <Play className="h-5 w-5" />
+                    <span className="font-medium">Demo Mode Active</span>
+                  </div>
+                  <p className="text-sm text-blue-600 mt-1">
+                    Experience the full report generation workflow with our sample theophylline PK study data.
+                  </p>
+                </div>
+              )}
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {REPORT_TYPES.map((type) => (
-                  <Card
-                    key={type.type}
-                    className={`cursor-pointer transition-all hover:shadow-md ${
-                      formData.reportType === type.type
-                        ? "ring-2 ring-primary"
-                        : ""
-                    }`}
-                    onClick={() => updateFormData("reportType", type.type)}
-                  >
-                    <CardHeader>
-                      <div className="flex items-center gap-3">
-                        <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${
-                          formData.reportType === type.type
-                            ? "bg-primary text-white"
-                            : "bg-primary/10 text-primary"
-                        }`}>
-                          {iconMap[type.icon]}
+                {REPORT_TYPES.map((type) => {
+                  const isDisabled = isDemo && type.type !== "PK_REPORT"
+                  return (
+                    <Card
+                      key={type.type}
+                      className={`transition-all ${
+                        isDisabled
+                          ? "opacity-50 cursor-not-allowed"
+                          : "cursor-pointer hover:shadow-md"
+                      } ${
+                        formData.reportType === type.type
+                          ? "ring-2 ring-primary"
+                          : ""
+                      }`}
+                      onClick={() => !isDisabled && updateFormData("reportType", type.type)}
+                    >
+                      <CardHeader>
+                        <div className="flex items-center gap-3">
+                          <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${
+                            formData.reportType === type.type
+                              ? "bg-primary text-white"
+                              : isDisabled
+                              ? "bg-gray-100 text-gray-400"
+                              : "bg-primary/10 text-primary"
+                          }`}>
+                            {iconMap[type.icon]}
+                          </div>
+                          <div>
+                            <CardTitle className={`text-base ${isDisabled ? "text-gray-400" : ""}`}>
+                              {type.name}
+                              {isDisabled && <span className="text-xs ml-2">(Demo: PK only)</span>}
+                            </CardTitle>
+                          </div>
                         </div>
-                        <div>
-                          <CardTitle className="text-base">{type.name}</CardTitle>
-                        </div>
-                      </div>
-                      <CardDescription className="mt-2">
-                        {type.description}
-                      </CardDescription>
-                    </CardHeader>
-                  </Card>
-                ))}
+                        <CardDescription className={`mt-2 ${isDisabled ? "text-gray-400" : ""}`}>
+                          {type.description}
+                        </CardDescription>
+                      </CardHeader>
+                    </Card>
+                  )
+                })}
               </div>
             </div>
           )}
@@ -354,11 +506,43 @@ function NewReportContent() {
                 Upload your study protocol (PDF or Word). The AI will automatically extract study metadata to pre-fill the form.
               </p>
 
-              {!protocolFile ? (
+              {isDemo && !protocolFile && (
+                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-blue-800 mb-2">
+                    <Play className="h-5 w-5" />
+                    <span className="font-medium">Demo Mode: Try Our Sample Protocol</span>
+                  </div>
+                  <p className="text-sm text-blue-600 mb-4">
+                    Click the button below to load our sample theophylline PK study protocol and see how metadata extraction works.
+                  </p>
+                  <Button
+                    onClick={loadSampleProtocol}
+                    disabled={loadingSampleProtocol}
+                    className="gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
+                  >
+                    {loadingSampleProtocol ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Loading Sample Protocol...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-4 w-4" />
+                        Use Sample Theophylline Protocol
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+
+              {!protocolFile && !loadingSampleProtocol ? (
                 <div className="border-2 border-dashed rounded-lg p-8 text-center">
                   <FileUp className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground mb-4">
-                    Drag and drop your protocol file here, or click to browse
+                    {isDemo
+                      ? "Or drag and drop your own protocol file here"
+                      : "Drag and drop your protocol file here, or click to browse"
+                    }
                   </p>
                   <FileUploader
                     onUpload={handleProtocolUpload}
@@ -366,7 +550,15 @@ function NewReportContent() {
                     singleFile={true}
                   />
                 </div>
-              ) : (
+              ) : loadingSampleProtocol ? (
+                <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                  <Loader2 className="h-12 w-12 mx-auto text-blue-500 mb-4 animate-spin" />
+                  <p className="text-blue-600 font-medium">Loading sample protocol...</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Downloading and uploading theophylline study protocol
+                  </p>
+                </div>
+              ) : protocolFile ? (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
                     <div className="flex items-center gap-3">
@@ -423,7 +615,7 @@ function NewReportContent() {
                     </Alert>
                   )}
                 </div>
-              )}
+              ) : null}
 
               <p className="text-sm text-muted-foreground mt-6">
                 <strong>Tip:</strong> You can skip this step and enter metadata manually, but uploading a protocol helps ensure accuracy and saves time.
@@ -456,7 +648,7 @@ function NewReportContent() {
                   <Label htmlFor="studyId">Study ID *</Label>
                   <Input
                     id="studyId"
-                    placeholder="e.g., AT25-AS200"
+                    placeholder="e.g., STU-2024-001"
                     value={formData.studyId}
                     onChange={(e) => updateFormData("studyId", e.target.value)}
                   />
@@ -474,7 +666,7 @@ function NewReportContent() {
                   <Label htmlFor="reportTitle">Report Title *</Label>
                   <Input
                     id="reportTitle"
-                    placeholder="e.g., Pharmacokinetic Analysis of Study AT25-AS200"
+                    placeholder="e.g., Pharmacokinetic Analysis of Test Article in Cynomolgus Monkeys"
                     value={formData.reportTitle}
                     onChange={(e) => updateFormData("reportTitle", e.target.value)}
                   />
@@ -483,7 +675,7 @@ function NewReportContent() {
                   <Label htmlFor="testFacility">Test Facility</Label>
                   <Input
                     id="testFacility"
-                    placeholder="e.g., Altasciences Preclinical Seattle"
+                    placeholder="e.g., ABC Research Laboratories"
                     value={formData.testFacility}
                     onChange={(e) => updateFormData("testFacility", e.target.value)}
                   />
@@ -608,7 +800,46 @@ function NewReportContent() {
                 Upload your data files (NCA parameters, concentration data) and figures
               </p>
 
-              <FileUploader onUpload={handleDataFileUpload} />
+              {isDemo && dataFiles.length === 0 && (
+                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-blue-800 mb-2">
+                    <Play className="h-5 w-5" />
+                    <span className="font-medium">Demo Mode: Try Our Sample Data</span>
+                  </div>
+                  <p className="text-sm text-blue-600 mb-4">
+                    Click the button below to load sample NCA parameters, concentration-time data, and figures for the theophylline study.
+                  </p>
+                  <Button
+                    onClick={loadSampleData}
+                    disabled={loadingSampleData}
+                    className="gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
+                  >
+                    {loadingSampleData ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Loading Sample Data...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-4 w-4" />
+                        Use Sample Theophylline Data
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+
+              {loadingSampleData ? (
+                <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                  <Loader2 className="h-12 w-12 mx-auto text-blue-500 mb-4 animate-spin" />
+                  <p className="text-blue-600 font-medium">Loading sample data files...</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Uploading NCA parameters and concentration data
+                  </p>
+                </div>
+              ) : (
+                <FileUploader onUpload={handleDataFileUpload} />
+              )}
 
               {dataFiles.length > 0 && (
                 <div className="mt-6">
