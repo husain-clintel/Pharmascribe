@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     // Require authentication
     const { user, error } = await requireAuth(request)
-    if (error) return error
+    if (error || !user) return error || NextResponse.json({ error: 'Authentication required' }, { status: 401 })
 
     // Only return reports owned by the authenticated user (or all for admins)
     const where = user.role === 'ADMIN' ? {} : { userId: user.id }
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
   try {
     // Require authentication
     const { user, error } = await requireAuth(request)
-    if (error) return error
+    if (error || !user) return error || NextResponse.json({ error: 'Authentication required' }, { status: 401 })
 
     const body = await request.json()
 
