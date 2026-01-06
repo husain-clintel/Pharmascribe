@@ -15,10 +15,7 @@ function getUserPool() {
 
 // Configure (no-op for compatibility)
 export function configureAmplify() {
-  console.log('Cognito config:', {
-    userPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID,
-    clientId: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID
-  })
+  // Configuration is handled via environment variables
 }
 
 // Parse JWT token to get payload
@@ -47,9 +44,6 @@ export async function cognitoSignIn(email: string, password: string): Promise<{
   session?: string
 }> {
   try {
-    console.log('Attempting sign in for:', email)
-    console.log('Password length:', password.length, 'chars')
-
     // Call server-side API route to avoid browser/CORS issues
     const response = await fetch('/api/auth/login', {
       method: 'POST',
@@ -60,7 +54,6 @@ export async function cognitoSignIn(email: string, password: string): Promise<{
     })
 
     const data = await response.json()
-    console.log('Auth response:', data)
 
     if (data.error) {
       return { success: false, error: data.error }
@@ -83,7 +76,6 @@ export async function cognitoSignIn(email: string, password: string): Promise<{
         localStorage.setItem('cognito_refresh_token', data.refreshToken)
       }
 
-      console.log('Sign in succeeded!')
       return { success: true, result: data }
     }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db/prisma'
 import { generateDocx } from '@/lib/document/generator'
+import { requireReportOwnership } from '@/lib/auth/api-auth'
 
 // Increase timeout for export with image fetching
 export const maxDuration = 120
@@ -12,6 +13,10 @@ export async function POST(
   const { id } = await params
 
   try {
+    // Check ownership
+    const { error: authError } = await requireReportOwnership(request, id)
+    if (authError) return authError
+
     const { format } = await request.json()
 
     // Include uploaded files to get figure images

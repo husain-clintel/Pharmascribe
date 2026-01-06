@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import prisma from '@/lib/db/prisma'
 import { generateQCPrompt } from '@/lib/ai/prompts/pk-report'
+import { requireReportOwnership } from '@/lib/auth/api-auth'
 
 // Increase timeout for AI QC
 export const maxDuration = 60
@@ -13,6 +14,10 @@ export async function GET(
   const { id } = await params
 
   try {
+    // Check ownership
+    const { error: authError } = await requireReportOwnership(request, id)
+    if (authError) return authError
+
     const qcResults = await prisma.qCResult.findMany({
       where: { reportId: id },
       orderBy: [
@@ -38,6 +43,10 @@ export async function POST(
   const { id } = await params
 
   try {
+    // Check ownership
+    const { error: authError } = await requireReportOwnership(request, id)
+    if (authError) return authError
+
     // Get report
     const report = await prisma.report.findUnique({
       where: { id }
@@ -162,9 +171,13 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  await params // Acknowledge params even though we use issueId from body
+  const { id } = await params
 
   try {
+    // Check ownership
+    const { error: authError } = await requireReportOwnership(request, id)
+    if (authError) return authError
+
     const body = await request.json()
     const { issueId, status, resolution } = body
 

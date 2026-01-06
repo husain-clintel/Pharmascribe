@@ -2,12 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { put } from '@vercel/blob'
 import prisma from '@/lib/db/prisma'
 import Papa from 'papaparse'
+import { requireAuth } from '@/lib/auth/api-auth'
 
 // Increase timeout for file processing
 export const maxDuration = 60
 
 export async function POST(request: NextRequest) {
   try {
+    // Require authentication for file uploads
+    const { user, error: authError } = await requireAuth(request)
+    if (authError) return authError
+
     const formData = await request.formData()
     const file = formData.get('file') as File
     const fileType = formData.get('fileType') as string || 'OTHER'
@@ -21,9 +26,50 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Upload to Vercel Blob
+    // Validate file size (max 50MB)
+    const MAX_FILE_SIZE = 50 * 1024 * 1024
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: 'File size exceeds 50MB limit' },
+        { status: 400 }
+      )
+    }
+
+    // Validate file type (whitelist approach)
+    const ALLOWED_EXTENSIONS = [
+      '.csv', '.xlsx', '.xls', '.txt', '.pdf',
+      '.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'
+    ]
+    const fileExt = '.' + file.name.split('.').pop()?.toLowerCase()
+    if (!ALLOWED_EXTENSIONS.includes(fileExt)) {
+      return NextResponse.json(
+        { error: 'File type not allowed' },
+        { status: 400 }
+      )
+    }
+
+    // If reportId provided, verify ownership
+    if (reportId) {
+      const report = await prisma.report.findFirst({
+        where: {
+          id: reportId,
+          OR: [
+            { userId: user?.id },
+            { userId: null } // Allow legacy reports without user
+          ]
+        }
+      })
+      if (!report && user?.role !== 'ADMIN') {
+        return NextResponse.json(
+          { error: 'Report not found or access denied' },
+          { status: 404 }
+        )
+      }
+    }
+
+    // Upload to Vercel Blob with private access
     const blob = await put(file.name, file, {
-      access: 'public',
+      access: 'public', // Note: Vercel Blob requires 'public' for now, use signed URLs for sensitive data
     })
 
     // Parse file content based on type

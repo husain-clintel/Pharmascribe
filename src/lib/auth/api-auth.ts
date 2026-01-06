@@ -1,17 +1,69 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createRemoteJWKSet, jwtVerify } from 'jose'
 import prisma from '@/lib/db/prisma'
 
-// Helper to extract Cognito user ID from request
+// Cache the JWKS for performance
+let jwks: ReturnType<typeof createRemoteJWKSet> | null = null
+
+function getJWKS() {
+  if (!jwks) {
+    const region = process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID?.split('_')[0] || 'us-east-1'
+    const userPoolId = process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID
+    const jwksUrl = `https://cognito-idp.${region}.amazonaws.com/${userPoolId}/.well-known/jwks.json`
+    jwks = createRemoteJWKSet(new URL(jwksUrl))
+  }
+  return jwks
+}
+
+// Verify JWT token and extract payload
+async function verifyToken(token: string): Promise<{ sub: string; email?: string } | null> {
+  try {
+    const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID
+    const userPoolId = process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID
+    const region = userPoolId?.split('_')[0] || 'us-east-1'
+    const issuer = `https://cognito-idp.${region}.amazonaws.com/${userPoolId}`
+
+    const { payload } = await jwtVerify(token, getJWKS(), {
+      issuer,
+      audience: clientId, // For ID tokens
+    })
+
+    return {
+      sub: payload.sub as string,
+      email: payload.email as string | undefined
+    }
+  } catch (error) {
+    // Try without audience check (for access tokens)
+    try {
+      const userPoolId = process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID
+      const region = userPoolId?.split('_')[0] || 'us-east-1'
+      const issuer = `https://cognito-idp.${region}.amazonaws.com/${userPoolId}`
+
+      const { payload } = await jwtVerify(token, getJWKS(), {
+        issuer,
+      })
+
+      return {
+        sub: payload.sub as string,
+        email: payload.email as string | undefined
+      }
+    } catch (retryError) {
+      console.error('JWT verification failed:', retryError)
+      return null
+    }
+  }
+}
+
+// Helper to extract and verify Cognito user ID from request
 export async function getCognitoIdFromRequest(request: NextRequest): Promise<string | null> {
   try {
     // Get authorization header (Bearer token)
     const authHeader = request.headers.get('authorization')
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.substring(7)
-      const parts = token.split('.')
-      if (parts.length === 3) {
-        const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString())
-        return payload.sub || null
+      const verified = await verifyToken(token)
+      if (verified) {
+        return verified.sub
       }
     }
 
@@ -20,10 +72,9 @@ export async function getCognitoIdFromRequest(request: NextRequest): Promise<str
     const allCookies = request.cookies.getAll()
     for (const cookie of allCookies) {
       if (cookie.name.includes('CognitoIdentityServiceProvider') && cookie.name.endsWith('idToken')) {
-        const parts = cookie.value.split('.')
-        if (parts.length === 3) {
-          const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString())
-          return payload.sub || null
+        const verified = await verifyToken(cookie.value)
+        if (verified) {
+          return verified.sub
         }
       }
     }
@@ -99,4 +150,55 @@ export async function requireAdmin(request: NextRequest): Promise<{
   }
 
   return { user, error: null }
+}
+
+// Helper to check report ownership
+export async function requireReportOwnership(
+  request: NextRequest,
+  reportId: string
+): Promise<{
+  user: { id: string; email: string; role: string } | null
+  report: any | null
+  error: NextResponse | null
+}> {
+  const { user, error } = await requireAuth(request)
+
+  if (error) {
+    return { user: null, report: null, error }
+  }
+
+  // Admins can access any report
+  if (user?.role === 'ADMIN') {
+    const report = await prisma.report.findUnique({
+      where: { id: reportId }
+    })
+
+    if (!report) {
+      return {
+        user,
+        report: null,
+        error: NextResponse.json({ error: 'Report not found' }, { status: 404 })
+      }
+    }
+
+    return { user, report, error: null }
+  }
+
+  // Regular users can only access their own reports
+  const report = await prisma.report.findFirst({
+    where: {
+      id: reportId,
+      userId: user?.id
+    }
+  })
+
+  if (!report) {
+    return {
+      user,
+      report: null,
+      error: NextResponse.json({ error: 'Report not found or access denied' }, { status: 404 })
+    }
+  }
+
+  return { user, report, error: null }
 }

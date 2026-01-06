@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db/prisma'
 
+// Admin emails should be configured via environment variable
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
+
 export async function POST(request: NextRequest) {
   try {
     const { cognitoId, email, name } = await request.json()
@@ -12,13 +15,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return NextResponse.json(
+        { error: 'Invalid email format' },
+        { status: 400 }
+      )
+    }
+
     // Try to find existing user
     let user = await prisma.user.findUnique({
       where: { cognitoId }
     })
 
     if (user) {
-      // Update existing user if needed
+      // Update existing user if needed (but never change role via sync)
       user = await prisma.user.update({
         where: { cognitoId },
         data: {
@@ -27,9 +39,8 @@ export async function POST(request: NextRequest) {
         }
       })
     } else {
-      // Check if this is the admin user
-      const isAdmin = email === 'admin@pharmascribe.local' ||
-                      email.toLowerCase() === 'admin'
+      // Check if this is an admin user based on environment config
+      const isAdmin = ADMIN_EMAILS.includes(email.toLowerCase())
 
       // Create new user
       user = await prisma.user.create({

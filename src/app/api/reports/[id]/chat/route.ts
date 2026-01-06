@@ -4,6 +4,7 @@ import prisma from '@/lib/db/prisma'
 import { generateChatPrompt } from '@/lib/ai/prompts/pk-report'
 import { getContextMemories, storeDecision, parseMemoryContent } from '@/lib/agent/memory-client'
 import type { DecisionContent, FactContent } from '@/lib/agent/types'
+import { requireReportOwnership } from '@/lib/auth/api-auth'
 
 // Increase timeout for AI chat with file context
 export const maxDuration = 120
@@ -15,6 +16,10 @@ export async function GET(
   const { id } = await params
 
   try {
+    // Check ownership
+    const { error: authError } = await requireReportOwnership(request, id)
+    if (authError) return authError
+
     const messages = await prisma.chatMessage.findMany({
       where: { reportId: id },
       orderBy: { createdAt: 'asc' }
@@ -37,6 +42,10 @@ export async function POST(
   const { id } = await params
 
   try {
+    // Check ownership
+    const { error: authError } = await requireReportOwnership(request, id)
+    if (authError) return authError
+
     const { message } = await request.json()
 
     // Get report with uploaded files for context

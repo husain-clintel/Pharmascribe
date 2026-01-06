@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import prisma from '@/lib/db/prisma'
 import { PK_REPORT_SYSTEM_PROMPT, generateReportPrompt } from '@/lib/ai/prompts/pk-report'
 import { PHARMACOLOGY_REPORT_SYSTEM_PROMPT, generatePharmacologyReportPrompt } from '@/lib/ai/prompts/pharmacology-report'
+import { requireReportOwnership } from '@/lib/auth/api-auth'
 
 // Increase timeout for AI generation (5 minutes for Pro plan)
 export const maxDuration = 300
@@ -14,6 +15,10 @@ export async function POST(
   const { id } = await params
 
   try {
+    // Check ownership
+    const { error: authError } = await requireReportOwnership(request, id)
+    if (authError) return authError
+
     // Get report with files
     const report = await prisma.report.findUnique({
       where: { id },
