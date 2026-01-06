@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db/prisma'
-import { getUserFromRequest } from '@/lib/auth/api-auth'
+import { requireAuth } from '@/lib/auth/api-auth'
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getUserFromRequest(request)
+    // Require authentication
+    const { user, error } = await requireAuth(request)
+    if (error) return error
 
-    // Build where clause - filter by userId if authenticated
-    const where = user ? { userId: user.id } : {}
+    // Only return reports owned by the authenticated user (or all for admins)
+    const where = user.role === 'ADMIN' ? {} : { userId: user.id }
 
     const reports = await prisma.report.findMany({
       where,
@@ -35,7 +37,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getUserFromRequest(request)
+    // Require authentication
+    const { user, error } = await requireAuth(request)
+    if (error) return error
+
     const body = await request.json()
 
     const {
@@ -55,7 +60,7 @@ export async function POST(request: NextRequest) {
       files
     } = body
 
-    // Create the report with user association if authenticated
+    // Create the report with user association
     const report = await prisma.report.create({
       data: {
         reportType,
@@ -72,7 +77,7 @@ export async function POST(request: NextRequest) {
         reviewedBy,
         approvedBy,
         status: 'DRAFT',
-        ...(user && { userId: user.id })
+        userId: user.id
       }
     })
 
