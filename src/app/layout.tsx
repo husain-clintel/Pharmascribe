@@ -16,10 +16,10 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.pharmascribeai.com'),
   title: {
-    default: "Pharmascribe - AI Regulatory Writing Assistant",
+    default: "Pharmascribe - AI Regulatory Writing Assistant for IND Reports",
     template: "%s | Pharmascribe",
   },
-  description: "Transform your study data into regulatory-compliant IND reports in minutes. AI-powered generation of PK, toxicology, CMC, and clinical pharmacology reports following FDA guidelines.",
+  description: "Transform your study data into regulatory-compliant IND reports in minutes. AI-powered generation of PK, toxicology, CMC, and clinical pharmacology reports following FDA guidelines. Built by a pharmaceutical industry expert with 25+ IND submissions.",
   keywords: [
     "regulatory writing",
     "IND reports",
@@ -38,8 +38,11 @@ export const metadata: Metadata = {
     "AI writing assistant",
     "report generation",
     "preclinical studies",
+    "investigational new drug",
+    "regulatory documents",
+    "pharma AI",
   ],
-  authors: [{ name: "Pharmascribe" }],
+  authors: [{ name: "Husain Attarwala, PhD", url: "https://www.linkedin.com/in/husainattarwala/" }],
   creator: "Pharmascribe",
   publisher: "Pharmascribe",
   robots: {
@@ -53,14 +56,6 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-    ],
-    apple: "/apple-touch-icon.png",
-  },
   manifest: "/site.webmanifest",
   openGraph: {
     type: "website",
@@ -68,28 +63,30 @@ export const metadata: Metadata = {
     url: "https://www.pharmascribeai.com",
     siteName: "Pharmascribe",
     title: "Pharmascribe - AI Regulatory Writing Assistant",
-    description: "Transform your study data into regulatory-compliant IND reports in minutes. AI-powered generation of PK, toxicology, CMC, and clinical pharmacology reports.",
+    description: "Transform your study data into regulatory-compliant IND reports in minutes. AI-powered generation of PK, toxicology, CMC, and clinical pharmacology reports. Built by an industry expert with 25+ IND submissions.",
     images: [
       {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
+        url: "/headshot.jpg",
+        width: 400,
+        height: 400,
         alt: "Pharmascribe - AI Regulatory Writing Assistant",
       },
     ],
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "Pharmascribe - AI Regulatory Writing Assistant",
     description: "Transform your study data into regulatory-compliant IND reports in minutes with AI-powered document generation.",
-    images: ["/og-image.png"],
-    creator: "@pharmascribe",
+    images: ["/headshot.jpg"],
   },
   alternates: {
     canonical: "https://www.pharmascribeai.com",
   },
   category: "Technology",
   classification: "Business Software",
+  other: {
+    'llms.txt': 'https://www.pharmascribeai.com/llms.txt',
+  },
 }
 
 export default function RootLayout({

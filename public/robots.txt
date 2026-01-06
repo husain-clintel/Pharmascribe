@@ -1,13 +1,15 @@
 # Robots.txt for Pharmascribe AI
 # https://www.pharmascribeai.com
 
+# Default rules
 User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /reports/*/qc
 Disallow: /_next/
+Disallow: /signup
 
-# Allow search engine crawlers
+# Search engine crawlers
 User-agent: Googlebot
 Allow: /
 
@@ -17,27 +19,71 @@ Allow: /
 User-agent: Slurp
 Allow: /
 
-# Allow AI/LLM crawlers
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Yandex
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+# AI/LLM crawlers - Welcome!
 User-agent: GPTBot
 Allow: /
+Allow: /llms.txt
 
 User-agent: ChatGPT-User
 Allow: /
+Allow: /llms.txt
 
 User-agent: Claude-Web
 Allow: /
+Allow: /llms.txt
+
+User-agent: ClaudeBot
+Allow: /
+Allow: /llms.txt
 
 User-agent: Anthropic-AI
 Allow: /
+Allow: /llms.txt
 
 User-agent: PerplexityBot
 Allow: /
+Allow: /llms.txt
 
 User-agent: Cohere-ai
+Allow: /
+Allow: /llms.txt
+
+User-agent: Google-Extended
+Allow: /
+Allow: /llms.txt
+
+User-agent: Applebot-Extended
+Allow: /
+Allow: /llms.txt
+
+User-agent: CCBot
+Allow: /
+Allow: /llms.txt
+
+User-agent: Meta-ExternalAgent
+Allow: /
+Allow: /llms.txt
+
+User-agent: FacebookBot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: Twitterbot
 Allow: /
 
 # Sitemap location
 Sitemap: https://www.pharmascribeai.com/sitemap.xml
 
-# LLMs.txt location (AI crawler information)
+# LLMs.txt - AI crawler information
 # See: https://www.pharmascribeai.com/llms.txt

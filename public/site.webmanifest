@@ -1,0 +1,36 @@
+{
+  "name": "Pharmascribe - AI Regulatory Writing Assistant",
+  "short_name": "Pharmascribe",
+  "description": "Transform your study data into regulatory-compliant IND reports in minutes with AI-powered document generation.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ff6b6b",
+  "orientation": "portrait-primary",
+  "categories": ["business", "productivity", "medical"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/og-image.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Pharmascribe Homepage"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}
