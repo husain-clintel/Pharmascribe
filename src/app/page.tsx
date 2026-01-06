@@ -40,12 +40,12 @@ export default function Home() {
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#ff6b6b] to-[#ff8e53] shadow-lg shadow-red-200/50">
               <Sparkles className="h-5 w-5 text-white" />
             </div>
             <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53]">Pharmascribe</span>
-          </div>
+          </Link>
           <nav className="flex items-center gap-4">
             <Link href="/reports">
               <Button variant="ghost">My Reports</Button>
@@ -156,9 +156,9 @@ export default function Home() {
         <div className="container">
           <div className="max-w-2xl mx-auto text-center">
             <div className="flex justify-center mb-6">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg shadow-blue-200/50">
+              <Link href="/reports/new?demo=true" className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg shadow-blue-200/50 hover:from-blue-600 hover:to-cyan-600 transition-all cursor-pointer">
                 <Play className="h-8 w-8 text-white" />
-              </div>
+              </Link>
             </div>
             <h2 className="text-3xl font-bold">Try It Out</h2>
             <p className="mt-4 text-muted-foreground">
