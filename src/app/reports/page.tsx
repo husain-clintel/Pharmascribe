@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,14 +15,20 @@ import {
   Edit,
   Download,
   ArrowLeft,
-  Dna
+  Dna,
+  LogOut
 } from "lucide-react"
 import { getReportTypeLabel, getStatusColor, formatDateTime } from "@/lib/utils"
+import { useInactivityLogout } from "@/hooks/useInactivityLogout"
 import type { Report } from "@/types"
 
 export default function ReportsPage() {
+  const router = useRouter()
   const [reports, setReports] = useState<Report[]>([])
   const [loading, setLoading] = useState(true)
+
+  // Auto-logout after 1 hour of inactivity
+  useInactivityLogout()
 
   useEffect(() => {
     fetchReports()
@@ -54,6 +61,25 @@ export default function ReportsPage() {
     }
   }
 
+  const handleLogout = async () => {
+    try {
+      // Clear localStorage tokens
+      localStorage.removeItem('cognito_access_token')
+      localStorage.removeItem('cognito_id_token')
+      localStorage.removeItem('cognito_refresh_token')
+
+      // Call logout API to clear httpOnly cookies
+      await fetch('/api/auth/logout', { method: 'POST' })
+
+      // Redirect to login
+      router.push('/login')
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Still redirect even if there's an error
+      router.push('/login')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -72,11 +98,21 @@ export default function ReportsPage() {
               <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53]">My Reports</span>
             </div>
           </div>
-          <Link href="/reports/new">
-            <Button className="gap-2 bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53] hover:from-[#ff5252] hover:to-[#ff7b3a] border-0">
-              <Plus className="h-4 w-4" /> New Report
+          <div className="flex items-center gap-2">
+            <Link href="/reports/new">
+              <Button className="gap-2 bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53] hover:from-[#ff5252] hover:to-[#ff7b3a] border-0">
+                <Plus className="h-4 w-4" /> New Report
+              </Button>
+            </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="gap-2"
+            >
+              <LogOut className="h-4 w-4" /> Logout
             </Button>
-          </Link>
+          </div>
         </div>
       </header>
 

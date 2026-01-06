@@ -27,6 +27,7 @@ import {
   Zap
 } from "lucide-react"
 import { getReportTypeLabel, getStatusColor } from "@/lib/utils"
+import { useInactivityLogout } from "@/hooks/useInactivityLogout"
 import type { Report, ReportSection, REPORT_TYPES } from "@/types"
 import { ReportPreview } from "@/components/report/ReportPreview"
 import { SectionEditor } from "@/components/report/SectionEditor"
@@ -52,6 +53,9 @@ export default function ReportEditorPage() {
   const [generating, setGenerating] = useState(false)
   const [selectedSection, setSelectedSection] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("editor")
+
+  // Auto-logout after 1 hour of inactivity
+  useInactivityLogout()
 
   useEffect(() => {
     if (params.id) {

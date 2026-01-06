@@ -34,6 +34,7 @@ import {
 } from "lucide-react"
 import { REPORT_TYPES, type ReportType } from "@/types"
 import { FileUploader } from "@/components/upload/FileUploader"
+import { useInactivityLogout } from "@/hooks/useInactivityLogout"
 
 const STEPS = [
   { id: 1, name: "Report Type", description: "Select the type of report" },
@@ -83,6 +84,9 @@ function NewReportContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialType = searchParams.get('type') as ReportType | null
+
+  // Auto-logout after 1 hour of inactivity
+  useInactivityLogout()
 
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(false)
