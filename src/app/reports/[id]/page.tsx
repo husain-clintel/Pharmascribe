@@ -322,9 +322,7 @@ export default function ReportEditorPage() {
               </Button>
             </Link>
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#ff6b6b] to-[#ff8e53] shadow-md shadow-red-200/50">
-                <Dna className="h-4 w-4 text-white" />
-              </div>
+              <img src="/logo.png" alt="Pharmascribe" className="h-8 w-8 object-contain" />
               <div>
                 <h1 className="font-semibold">{report.reportTitle}</h1>
                 <p className="text-xs text-muted-foreground">
@@ -506,7 +504,7 @@ export default function ReportEditorPage() {
               ) : (
                 <Card className="max-w-xl mx-auto mt-20">
                   <CardHeader className="text-center">
-                    <Dna className="h-12 w-12 text-primary mx-auto mb-4" />
+                    <img src="/logo.png" alt="Pharmascribe" className="h-16 w-16 mx-auto mb-4 object-contain" />
                     <CardTitle>Generate Your Report</CardTitle>
                   </CardHeader>
                   <CardContent className="text-center">

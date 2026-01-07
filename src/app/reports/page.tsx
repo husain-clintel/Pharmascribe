@@ -92,9 +92,7 @@ export default function ReportsPage() {
               </Button>
             </Link>
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#ff6b6b] to-[#ff8e53] shadow-md shadow-red-200/50">
-                <Dna className="h-4 w-4 text-white" />
-              </div>
+              <img src="/logo.png" alt="Pharmascribe" className="h-8 w-8 object-contain" />
               <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53]">My Reports</span>
             </div>
           </div>

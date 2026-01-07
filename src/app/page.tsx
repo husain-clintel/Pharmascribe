@@ -41,9 +41,7 @@ export default function Home() {
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#ff6b6b] to-[#ff8e53] shadow-lg shadow-red-200/50">
-              <Sparkles className="h-5 w-5 text-white" />
-            </div>
+            <img src="/logo.png" alt="Pharmascribe" className="h-10 w-10 object-contain" />
             <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53]">Pharmascribe</span>
           </Link>
           <nav className="flex items-center gap-4">
@@ -63,9 +61,7 @@ export default function Home() {
 
         <div className="container text-center relative z-10">
           <div className="flex justify-center mb-6">
-            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ff6b6b] to-[#ff8e53] shadow-xl shadow-red-200/50">
-              <Sparkles className="h-10 w-10 text-white" />
-            </div>
+            <img src="/logo.png" alt="Pharmascribe" className="h-24 w-24 object-contain" />
           </div>
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53]">Pharmascribe</span>
