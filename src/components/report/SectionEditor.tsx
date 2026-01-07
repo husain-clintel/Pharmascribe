@@ -4,8 +4,26 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Save, ChevronDown, ChevronRight } from "lucide-react"
+import { Save, ChevronDown, ChevronRight, Sparkles, Loader2, Undo2 } from "lucide-react"
+import { toast } from "sonner"
 import type { ReportSection } from "@/types"
+
+type AssistAction = 'polish' | 'elaborate' | 'shorten' | 'simplify' | 'formal' | 'technical'
+
+interface WritingAssistButton {
+  action: AssistAction
+  label: string
+  description: string
+}
+
+const writingAssistButtons: WritingAssistButton[] = [
+  { action: 'polish', label: 'Polish', description: 'Improve clarity and grammar' },
+  { action: 'elaborate', label: 'Elaborate', description: 'Add more detail' },
+  { action: 'shorten', label: 'Shorten', description: 'Make more concise' },
+  { action: 'simplify', label: 'Simplify', description: 'Easier to understand' },
+  { action: 'formal', label: 'Formalize', description: 'More professional tone' },
+  { action: 'technical', label: 'Technical', description: 'Add technical precision' },
+]
 
 // Helper to safely convert content to string for editing
 function contentToString(content: any): string {
@@ -67,6 +85,8 @@ export function SectionEditor({
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(sections.map(s => s.id))
   )
+  const [processingSection, setProcessingSection] = useState<string | null>(null)
+  const [contentHistory, setContentHistory] = useState<Record<string, string[]>>({})
 
   const toggleSection = (id: string) => {
     setExpandedSections(prev => {
@@ -102,6 +122,72 @@ export function SectionEditor({
 
   const hasChanges = (sectionId: string) => {
     return editingContent[sectionId] !== undefined
+  }
+
+  const handleWritingAssist = async (sectionId: string, action: AssistAction, sectionTitle: string) => {
+    const currentContent = getContent(sections.find(s => s.id === sectionId)!)
+    if (!currentContent || currentContent.trim() === '') {
+      toast.error('No content to process')
+      return
+    }
+
+    setProcessingSection(sectionId)
+
+    // Save current content to history for undo
+    setContentHistory(prev => ({
+      ...prev,
+      [sectionId]: [...(prev[sectionId] || []), currentContent]
+    }))
+
+    try {
+      const response = await fetch('/api/writing-assist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: currentContent,
+          action,
+          sectionTitle
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to process text')
+      }
+
+      const data = await response.json()
+
+      if (data.result) {
+        setEditingContent(prev => ({ ...prev, [sectionId]: data.result }))
+        toast.success(`Text ${data.label.toLowerCase()}`)
+      }
+    } catch (error) {
+      console.error('Writing assist error:', error)
+      toast.error('Failed to process text')
+      // Remove from history on error
+      setContentHistory(prev => ({
+        ...prev,
+        [sectionId]: (prev[sectionId] || []).slice(0, -1)
+      }))
+    } finally {
+      setProcessingSection(null)
+    }
+  }
+
+  const handleUndo = (sectionId: string) => {
+    const history = contentHistory[sectionId]
+    if (history && history.length > 0) {
+      const previousContent = history[history.length - 1]
+      setEditingContent(prev => ({ ...prev, [sectionId]: previousContent }))
+      setContentHistory(prev => ({
+        ...prev,
+        [sectionId]: history.slice(0, -1)
+      }))
+      toast.success('Reverted to previous version')
+    }
+  }
+
+  const canUndo = (sectionId: string) => {
+    return (contentHistory[sectionId]?.length || 0) > 0
   }
 
   // Filter out sections that are heading-only (empty content parent sections)
@@ -172,7 +258,46 @@ export function SectionEditor({
                 onChange={(e) => handleContentChange(section.id, e.target.value)}
                 className="min-h-[200px] font-mono text-sm"
                 placeholder="Enter section content..."
+                disabled={processingSection === section.id}
               />
+
+              {/* Writing Assist Buttons */}
+              <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground mr-2">
+                  <Sparkles className="h-3 w-3" />
+                  <span>AI Assist:</span>
+                </div>
+                {writingAssistButtons.map((btn) => (
+                  <Button
+                    key={btn.action}
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    disabled={processingSection === section.id}
+                    onClick={() => handleWritingAssist(section.id, btn.action, section.title)}
+                    title={btn.description}
+                  >
+                    {processingSection === section.id ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      btn.label
+                    )}
+                  </Button>
+                ))}
+                {canUndo(section.id) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs ml-auto"
+                    onClick={() => handleUndo(section.id)}
+                    disabled={processingSection === section.id}
+                  >
+                    <Undo2 className="h-3 w-3 mr-1" />
+                    Undo
+                  </Button>
+                )}
+              </div>
+
               <div className="flex justify-between items-center mt-2">
                 <p className="text-xs text-muted-foreground">
                   {getContent(section)?.length || 0} characters
