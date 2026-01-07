@@ -32,14 +32,14 @@ export function UserMenu() {
 
   if (!isAuthenticated) {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2">
         <Link href="/login">
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className="px-2 sm:px-3 text-xs sm:text-sm">
             Sign In
           </Button>
         </Link>
         <Link href="/signup">
-          <Button size="sm" className="bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53] hover:from-[#ff5252] hover:to-[#ff7b3a] border-0">
+          <Button size="sm" className="px-2 sm:px-3 text-xs sm:text-sm bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53] hover:from-[#ff5252] hover:to-[#ff7b3a] border-0">
             Sign Up
           </Button>
         </Link>

@@ -37,17 +37,17 @@ export default function Home() {
   return (
     <>
       <HomePageStructuredData />
-      <div className="min-h-screen">
+      <div className="min-h-screen overflow-x-hidden">
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity">
-            <img src="/logo.png" alt="Pharmascribe" className="h-8 w-8 sm:h-10 sm:w-10 object-contain" />
-            <span className="text-lg sm:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53]">Pharmascribe</span>
+        <div className="container flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
+          <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity flex-shrink-0">
+            <img src="/logo.png" alt="Pharmascribe" className="h-8 w-8 object-contain" />
+            <span className="hidden xs:inline text-base sm:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53]">Pharmascribe</span>
           </Link>
-          <nav className="flex items-center gap-2 sm:gap-4">
+          <nav className="flex items-center gap-1 sm:gap-3">
             <Link href="/reports">
-              <Button variant="ghost" size="sm" className="text-xs sm:text-sm">My Reports</Button>
+              <Button variant="ghost" size="sm" className="text-xs sm:text-sm px-2 sm:px-3">My Reports</Button>
             </Link>
             <UserMenu />
           </nav>
