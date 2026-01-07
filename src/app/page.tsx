@@ -19,7 +19,6 @@ import {
   Upload,
   Wand2,
   FileCheck,
-  Sparkles,
   Play,
   Menu
 } from "lucide-react"
@@ -296,9 +295,7 @@ export default function Home() {
       <footer className="border-t bg-gray-900 py-8 text-white">
         <div className="container text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-[#ff6b6b] to-[#ff8e53]">
-              <Sparkles className="h-3.5 w-3.5 text-white" />
-            </div>
+            <img src="/logo-dark.png" alt="Pharmascribe" className="h-6 w-6 object-contain" />
             <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53]">Pharmascribe</span>
           </div>
           <p className="text-gray-400 text-sm">AI-Powered Regulatory Report Generation</p>
