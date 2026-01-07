@@ -133,7 +133,7 @@ export function HomePageStructuredData() {
     "@type": "Organization",
     name: "Pharmascribe",
     url: "https://pharmascribe.clintel.ai",
-    logo: "https://pharmascribe.clintel.ai/headshot.jpg",
+    logo: "https://pharmascribe.clintel.ai/logo.png",
     description: "AI-powered regulatory writing assistant for pharmaceutical and biotech companies. Generate FDA-compliant IND reports in minutes.",
     founder: {
       "@type": "Person",
@@ -188,7 +188,7 @@ export function HomePageStructuredData() {
       "Microsoft Word document export",
       "Support for PK, toxicology, CMC, and more report types",
     ],
-    screenshot: "https://pharmascribe.clintel.ai/headshot.jpg",
+    screenshot: "https://pharmascribe.clintel.ai/logo.png",
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: "5",

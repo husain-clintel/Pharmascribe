@@ -66,9 +66,9 @@ export const metadata: Metadata = {
     description: "Transform your study data into regulatory-compliant IND reports in minutes. AI-powered generation of PK, toxicology, CMC, and clinical pharmacology reports. Built by an industry expert with 25+ IND submissions.",
     images: [
       {
-        url: "/headshot.jpg",
-        width: 400,
-        height: 400,
+        url: "/logo.png",
+        width: 512,
+        height: 512,
         alt: "Pharmascribe - AI Regulatory Writing Assistant",
       },
     ],
@@ -77,7 +77,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Pharmascribe - AI Regulatory Writing Assistant",
     description: "Transform your study data into regulatory-compliant IND reports in minutes with AI-powered document generation.",
-    images: ["/headshot.jpg"],
+    images: ["/logo.png"],
   },
   alternates: {
     canonical: "https://pharmascribe.clintel.ai",
