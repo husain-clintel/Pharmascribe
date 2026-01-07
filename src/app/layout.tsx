@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     default: "Pharmascribe - AI Regulatory Writing Assistant for IND Reports",
     template: "%s | Pharmascribe",
   },
-  description: "Transform your study data into regulatory-compliant IND reports in minutes. AI-powered generation of PK, toxicology, CMC, and clinical pharmacology reports following FDA guidelines. Built by a pharmaceutical industry expert with 25+ IND submissions.",
+  description: "Transform your study data into regulatory-compliant IND reports in minutes. AI-powered generation of PK, toxicology, CMC, and clinical pharmacology reports following FDA guidelines.",
   keywords: [
     "regulatory writing",
     "IND reports",
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     "regulatory documents",
     "pharma AI",
   ],
-  authors: [{ name: "Husain Attarwala, PhD", url: "https://www.linkedin.com/in/husainattarwala/" }],
+  authors: [{ name: "Pharmascribe Team" }],
   creator: "Pharmascribe",
   publisher: "Pharmascribe",
   robots: {
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
     url: "https://pharmascribe.clintel.ai",
     siteName: "Pharmascribe",
     title: "Pharmascribe - AI Regulatory Writing Assistant",
-    description: "Transform your study data into regulatory-compliant IND reports in minutes. AI-powered generation of PK, toxicology, CMC, and clinical pharmacology reports. Built by an industry expert with 25+ IND submissions.",
+    description: "Transform your study data into regulatory-compliant IND reports in minutes. AI-powered generation of PK, toxicology, CMC, and clinical pharmacology reports following FDA guidelines.",
     images: [
       {
         url: "/logo.png",

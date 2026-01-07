@@ -135,33 +135,11 @@ export function HomePageStructuredData() {
     url: "https://pharmascribe.clintel.ai",
     logo: "https://pharmascribe.clintel.ai/logo.png",
     description: "AI-powered regulatory writing assistant for pharmaceutical and biotech companies. Generate FDA-compliant IND reports in minutes.",
-    founder: {
-      "@type": "Person",
-      name: "Husain Attarwala, PhD",
-      jobTitle: "Founder & Developer",
-      description: "Pharmaceutical industry veteran with 15 years experience, 25+ IND submissions and contributions to 7 FDA-approved drugs",
-      sameAs: "https://www.linkedin.com/in/husainattarwala/",
-      image: "https://pharmascribe.clintel.ai/headshot.jpg",
-      alumniOf: {
-        "@type": "Organization",
-        name: "Pharmaceutical Industry",
-      },
-      knowsAbout: [
-        "Pharmacokinetics",
-        "Drug Development",
-        "FDA Regulatory Submissions",
-        "IND Applications",
-        "Clinical Pharmacology",
-      ],
-    },
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "customer service",
-      url: "https://www.linkedin.com/in/husainattarwala/",
+      email: "info@clintel.ai",
     },
-    sameAs: [
-      "https://www.linkedin.com/in/husainattarwala/",
-    ],
   }
 
   const softwareSchema = {
@@ -275,14 +253,6 @@ export function HomePageStructuredData() {
         acceptedAnswer: {
           "@type": "Answer",
           text: "Pharmascribe exports publication-quality reports in Microsoft Word (.docx) format, following FDA formatting guidelines and IMRAD structure.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Who built Pharmascribe?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Pharmascribe was built by Husain Attarwala, PhD, a pharmaceutical industry veteran with 15 years of experience, 25+ IND submissions, and contributions to 7 FDA-approved drugs.",
         },
       },
     ],

@@ -246,11 +246,22 @@ export default function SignupPage() {
               </form>
             )}
 
-            <div className="mt-6 text-center text-sm text-muted-foreground">
-              Already have an account?{' '}
-              <Link href="/login" className="text-[#ff6b6b] hover:text-[#ff5252] font-medium">
-                Sign in
-              </Link>
+            <div className="mt-6 text-center text-sm text-muted-foreground space-y-2">
+              <div>
+                Already have an account?{' '}
+                <Link href="/login" className="text-[#ff6b6b] hover:text-[#ff5252] font-medium">
+                  Sign in
+                </Link>
+              </div>
+              <div>
+                Need help?{' '}
+                <a
+                  href="mailto:info@clintel.ai?subject=Pharmascribe%20Access%20Request"
+                  className="text-[#ff6b6b] hover:text-[#ff5252] font-medium"
+                >
+                  Contact us
+                </a>
+              </div>
             </div>
           </CardContent>
         </Card>

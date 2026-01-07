@@ -140,9 +140,7 @@ export default function LoginPage() {
             <div className="mt-6 text-center text-sm text-muted-foreground">
               Don&apos;t have an account?{' '}
               <a
-                href="https://www.linkedin.com/in/husainattarwala/"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="mailto:info@clintel.ai?subject=Pharmascribe%20Access%20Request"
                 className="text-[#ff6b6b] hover:text-[#ff5252] font-medium"
               >
                 Request Access
