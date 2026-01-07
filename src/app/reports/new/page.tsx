@@ -385,15 +385,15 @@ function NewReportContent() {
   }
 
   return (
-    <main className="container py-8">
+    <main className="container py-4 sm:py-6 md:py-8 px-4 sm:px-6">
       {/* Progress Steps */}
-      <div className="mb-8">
+      <div className="mb-4 sm:mb-6 md:mb-8">
         <div className="flex justify-between">
           {STEPS.map((step, index) => (
             <div key={step.id} className="flex-1">
               <div className="flex items-center">
                 <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${
+                  className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full border-2 text-xs sm:text-sm ${
                     currentStep > step.id
                       ? "border-primary bg-primary text-white"
                       : currentStep === step.id
@@ -402,26 +402,26 @@ function NewReportContent() {
                   }`}
                 >
                   {currentStep > step.id ? (
-                    <Check className="h-5 w-5" />
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5" />
                   ) : (
                     step.id
                   )}
                 </div>
                 {index < STEPS.length - 1 && (
                   <div
-                    className={`h-1 flex-1 ${
+                    className={`h-0.5 sm:h-1 flex-1 ${
                       currentStep > step.id ? "bg-primary" : "bg-gray-200"
                     }`}
                   />
                 )}
               </div>
-              <div className="mt-2">
-                <p className={`text-sm font-medium ${
+              <div className="mt-1 sm:mt-2">
+                <p className={`text-[10px] sm:text-sm font-medium ${
                   currentStep >= step.id ? "text-gray-900" : "text-gray-400"
                 }`}>
                   {step.name}
                 </p>
-                <p className="text-xs text-gray-500">{step.description}</p>
+                <p className="text-[9px] sm:text-xs text-gray-500 hidden sm:block">{step.description}</p>
               </div>
             </div>
           ))}
@@ -430,7 +430,7 @@ function NewReportContent() {
 
       {/* Step Content */}
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6">
           {/* Step 1: Report Type */}
           {currentStep === 1 && (
             <div>
@@ -1022,15 +1022,15 @@ export default function NewReportPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="border-b bg-white">
-        <div className="container flex h-16 items-center gap-4">
+        <div className="container flex h-14 sm:h-16 items-center gap-2 sm:gap-4 px-4">
           <Link href="/reports">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10">
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
           <div className="flex items-center gap-2">
-            <FileText className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">New Report</span>
+            <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <span className="text-lg sm:text-xl font-bold">New Report</span>
           </div>
         </div>
       </header>

@@ -132,8 +132,8 @@ export function HomePageStructuredData() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "Pharmascribe",
-    url: "https://www.pharmascribeai.com",
-    logo: "https://www.pharmascribeai.com/headshot.jpg",
+    url: "https://pharmascribe.clintel.ai",
+    logo: "https://pharmascribe.clintel.ai/headshot.jpg",
     description: "AI-powered regulatory writing assistant for pharmaceutical and biotech companies. Generate FDA-compliant IND reports in minutes.",
     founder: {
       "@type": "Person",
@@ -141,7 +141,7 @@ export function HomePageStructuredData() {
       jobTitle: "Founder & Developer",
       description: "Pharmaceutical industry veteran with 15 years experience, 25+ IND submissions and contributions to 7 FDA-approved drugs",
       sameAs: "https://www.linkedin.com/in/husainattarwala/",
-      image: "https://www.pharmascribeai.com/headshot.jpg",
+      image: "https://pharmascribe.clintel.ai/headshot.jpg",
       alumniOf: {
         "@type": "Organization",
         name: "Pharmaceutical Industry",
@@ -188,7 +188,7 @@ export function HomePageStructuredData() {
       "Microsoft Word document export",
       "Support for PK, toxicology, CMC, and more report types",
     ],
-    screenshot: "https://www.pharmascribeai.com/headshot.jpg",
+    screenshot: "https://pharmascribe.clintel.ai/headshot.jpg",
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: "5",
@@ -203,11 +203,11 @@ export function HomePageStructuredData() {
     "@type": "WebPage",
     name: "Pharmascribe - AI Regulatory Writing Assistant for IND Reports",
     description: "Transform your study data into regulatory-compliant IND reports in minutes with AI-powered document generation.",
-    url: "https://www.pharmascribeai.com",
+    url: "https://pharmascribe.clintel.ai",
     isPartOf: {
       "@type": "WebSite",
       name: "Pharmascribe",
-      url: "https://www.pharmascribeai.com",
+      url: "https://pharmascribe.clintel.ai",
     },
     mainEntity: {
       "@type": "SoftwareApplication",

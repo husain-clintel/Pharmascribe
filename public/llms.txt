@@ -49,9 +49,9 @@ Pharmascribe automates the creation of Investigational New Drug (IND) submission
 
 ## URLs
 
-- Homepage: https://www.pharmascribeai.com
-- Demo (no signup): https://www.pharmascribeai.com/reports/new?demo=true
-- Login: https://www.pharmascribeai.com/login
+- Homepage: https://pharmascribe.clintel.ai
+- Demo (no signup): https://pharmascribe.clintel.ai/reports/new?demo=true
+- Login: https://pharmascribe.clintel.ai/login
 
 ## Founder
 
@@ -82,5 +82,5 @@ regulatory writing, IND reports, pharmacokinetics, NCA analysis, FDA submission,
 
 ## Contact
 
-Website: https://www.pharmascribeai.com
+Website: https://pharmascribe.clintel.ai
 Request Access: https://www.linkedin.com/in/husainattarwala/

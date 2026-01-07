@@ -14,7 +14,7 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.pharmascribeai.com'),
+  metadataBase: new URL('https://pharmascribe.clintel.ai'),
   title: {
     default: "Pharmascribe - AI Regulatory Writing Assistant for IND Reports",
     template: "%s | Pharmascribe",
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://www.pharmascribeai.com",
+    url: "https://pharmascribe.clintel.ai",
     siteName: "Pharmascribe",
     title: "Pharmascribe - AI Regulatory Writing Assistant",
     description: "Transform your study data into regulatory-compliant IND reports in minutes. AI-powered generation of PK, toxicology, CMC, and clinical pharmacology reports. Built by an industry expert with 25+ IND submissions.",
@@ -80,12 +80,12 @@ export const metadata: Metadata = {
     images: ["/headshot.jpg"],
   },
   alternates: {
-    canonical: "https://www.pharmascribeai.com",
+    canonical: "https://pharmascribe.clintel.ai",
   },
   category: "Technology",
   classification: "Business Software",
   other: {
-    'llms.txt': 'https://www.pharmascribeai.com/llms.txt',
+    'llms.txt': 'https://pharmascribe.clintel.ai/llms.txt',
   },
 }
 

@@ -168,82 +168,85 @@ export default function QCPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="border-b bg-white sticky top-0 z-10">
-        <div className="container flex h-14 items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="container flex h-12 sm:h-14 items-center justify-between px-2 sm:px-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Link href={`/reports/${params.id}`}>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>
             <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-primary" />
-              <span className="font-semibold">Quality Control</span>
+              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <span className="font-semibold text-sm sm:text-base">QC</span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <Button
               onClick={runQC}
               disabled={running}
               variant="outline"
-              className="gap-2"
+              size="sm"
+              className="gap-1 sm:gap-2 text-xs sm:text-sm"
             >
               {running ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Running QC...
+                  <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                  <span className="hidden sm:inline">Running...</span>
                 </>
               ) : (
                 <>
-                  <RefreshCw className="h-4 w-4" />
-                  Run QC Check
+                  <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Run QC</span>
                 </>
               )}
             </Button>
             {selectedIssues.size > 0 && (
               <Button
                 onClick={fixWithAI}
-                className="gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                size="sm"
+                className="gap-1 sm:gap-2 text-xs sm:text-sm bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
               >
-                <Wand2 className="h-4 w-4" />
-                Fix {selectedIssues.size} Issue{selectedIssues.size > 1 ? 's' : ''} with AI
+                <Wand2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Fix {selectedIssues.size}</span>
+                <span className="sm:hidden">{selectedIssues.size}</span>
               </Button>
             )}
           </div>
         </div>
       </header>
 
-      <main className="container py-8">
+      <main className="container py-4 sm:py-6 md:py-8 px-2 sm:px-4">
         {/* Summary Cards */}
         {summary && (
-          <div className="grid gap-4 md:grid-cols-5 mb-8">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-4 mb-4 sm:mb-8">
             <Card>
-              <CardContent className="pt-6">
-                <div className="text-2xl font-bold">{summary.total}</div>
-                <p className="text-sm text-muted-foreground">Total Issues</p>
+              <CardContent className="pt-3 sm:pt-6 p-2 sm:p-4">
+                <div className="text-lg sm:text-2xl font-bold">{summary.total}</div>
+                <p className="text-[10px] sm:text-sm text-muted-foreground">Total</p>
               </CardContent>
             </Card>
             <Card className="border-red-200">
-              <CardContent className="pt-6">
-                <div className="text-2xl font-bold text-red-600">{summary.critical}</div>
-                <p className="text-sm text-muted-foreground">Critical</p>
+              <CardContent className="pt-3 sm:pt-6 p-2 sm:p-4">
+                <div className="text-lg sm:text-2xl font-bold text-red-600">{summary.critical}</div>
+                <p className="text-[10px] sm:text-sm text-muted-foreground">Critical</p>
               </CardContent>
             </Card>
             <Card className="border-orange-200">
-              <CardContent className="pt-6">
-                <div className="text-2xl font-bold text-orange-600">{summary.major}</div>
-                <p className="text-sm text-muted-foreground">Major</p>
+              <CardContent className="pt-3 sm:pt-6 p-2 sm:p-4">
+                <div className="text-lg sm:text-2xl font-bold text-orange-600">{summary.major}</div>
+                <p className="text-[10px] sm:text-sm text-muted-foreground">Major</p>
               </CardContent>
             </Card>
-            <Card className="border-yellow-200">
-              <CardContent className="pt-6">
-                <div className="text-2xl font-bold text-yellow-600">{summary.minor}</div>
-                <p className="text-sm text-muted-foreground">Minor</p>
+            <Card className="border-yellow-200 hidden sm:block">
+              <CardContent className="pt-3 sm:pt-6 p-2 sm:p-4">
+                <div className="text-lg sm:text-2xl font-bold text-yellow-600">{summary.minor}</div>
+                <p className="text-[10px] sm:text-sm text-muted-foreground">Minor</p>
               </CardContent>
             </Card>
-            <Card className="border-green-200">
-              <CardContent className="pt-6">
-                <div className="text-2xl font-bold text-green-600">{summary.fixed}</div>
-                <p className="text-sm text-muted-foreground">Fixed</p>
+            <Card className="border-green-200 hidden sm:block">
+              <CardContent className="pt-3 sm:pt-6 p-2 sm:p-4">
+                <div className="text-lg sm:text-2xl font-bold text-green-600">{summary.fixed}</div>
+                <p className="text-[10px] sm:text-sm text-muted-foreground">Fixed</p>
               </CardContent>
             </Card>
           </div>

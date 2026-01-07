@@ -20,7 +20,8 @@ import {
   Wand2,
   FileCheck,
   Sparkles,
-  Play
+  Play,
+  Menu
 } from "lucide-react"
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -40,13 +41,13 @@ export default function Home() {
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-            <img src="/logo.png" alt="Pharmascribe" className="h-10 w-10 object-contain" />
-            <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53]">Pharmascribe</span>
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity">
+            <img src="/logo.png" alt="Pharmascribe" className="h-8 w-8 sm:h-10 sm:w-10 object-contain" />
+            <span className="text-lg sm:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53]">Pharmascribe</span>
           </Link>
-          <nav className="flex items-center gap-4">
+          <nav className="flex items-center gap-2 sm:gap-4">
             <Link href="/reports">
-              <Button variant="ghost">My Reports</Button>
+              <Button variant="ghost" size="sm" className="text-xs sm:text-sm">My Reports</Button>
             </Link>
             <UserMenu />
           </nav>
@@ -54,32 +55,32 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-red-50/50 via-orange-50/30 to-white py-20 relative overflow-hidden">
+      <section className="bg-gradient-to-b from-red-50/50 via-orange-50/30 to-white py-10 md:py-16 lg:py-20 relative overflow-hidden">
         {/* Background blobs */}
         <div className="absolute top-20 left-10 w-72 h-72 bg-[#ff6b6b]/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-10 right-10 w-96 h-96 bg-[#ff8e53]/10 rounded-full blur-3xl"></div>
 
         <div className="container text-center relative z-10">
-          <div className="flex justify-center mb-6">
-            <img src="/logo.png" alt="Pharmascribe" className="h-24 w-24 object-contain" />
+          <div className="flex justify-center mb-4 sm:mb-6">
+            <img src="/logo.png" alt="Pharmascribe" className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 object-contain" />
           </div>
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53]">Pharmascribe</span>
           </h1>
-          <p className="text-xl text-gray-600 mt-2 font-medium">Your AI Regulatory Writing Assistant</p>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
+          <p className="text-lg sm:text-xl text-gray-600 mt-2 font-medium">Your AI Regulatory Writing Assistant</p>
+          <p className="mx-auto mt-4 sm:mt-6 max-w-2xl text-base sm:text-lg text-muted-foreground px-4">
             Transform your study data into regulatory-compliant reports in minutes.
             Upload your tables, figures, and documents, and let AI generate publication-quality
             IND reports following FDA guidelines.
           </p>
-          <div className="mt-10 flex justify-center gap-4">
-            <Link href="/reports/new">
-              <Button size="lg" className="gap-2 bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53] hover:from-[#ff5252] hover:to-[#ff7b3a] shadow-lg shadow-red-200/50 border-0">
+          <div className="mt-8 md:mt-10 flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 px-4">
+            <Link href="/reports/new" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto gap-2 bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53] hover:from-[#ff5252] hover:to-[#ff7b3a] shadow-lg shadow-red-200/50 border-0">
                 Create New Report <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
-            <Link href="/reports">
-              <Button size="lg" variant="outline" className="border-[#ff6b6b]/30 hover:bg-red-50 hover:border-[#ff6b6b]/50">
+            <Link href="/reports" className="w-full sm:w-auto">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto border-[#ff6b6b]/30 hover:bg-red-50 hover:border-[#ff6b6b]/50">
                 View My Reports
               </Button>
             </Link>
@@ -88,14 +89,14 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20">
+      <section className="py-10 md:py-16 lg:py-20">
         <div className="container">
-          <h2 className="text-center text-3xl font-bold">How It Works</h2>
+          <h2 className="text-center text-2xl sm:text-3xl font-bold">How It Works</h2>
           <p className="mx-auto mt-4 max-w-2xl text-center text-muted-foreground">
             Generate compliant reports in four simple steps
           </p>
 
-          <div className="mt-12 grid gap-8 md:grid-cols-4">
+          <div className="mt-8 md:mt-12 grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
             <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#ff6b6b]/10 to-[#ff8e53]/10">
@@ -148,15 +149,15 @@ export default function Home() {
       </section>
 
       {/* Try It Out Section */}
-      <section className="bg-gradient-to-b from-white to-gray-50 py-20">
+      <section className="bg-gradient-to-b from-white to-gray-50 py-10 md:py-16 lg:py-20">
         <div className="container">
-          <div className="max-w-2xl mx-auto text-center">
+          <div className="max-w-2xl mx-auto text-center px-4">
             <div className="flex justify-center mb-6">
               <Link href="/reports/new?demo=true" className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg shadow-blue-200/50 hover:from-blue-600 hover:to-cyan-600 transition-all cursor-pointer">
                 <Play className="h-8 w-8 text-white" />
               </Link>
             </div>
-            <h2 className="text-3xl font-bold">Try It Out</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold">Try It Out</h2>
             <p className="mt-4 text-muted-foreground">
               Experience the full workflow with our sample theophylline PK study data.
               No signup required - just click and explore!
@@ -171,14 +172,14 @@ export default function Home() {
       </section>
 
       {/* Report Types Section */}
-      <section className="bg-gray-50 py-20">
+      <section className="bg-gray-50 py-10 md:py-16 lg:py-20">
         <div className="container">
-          <h2 className="text-center text-3xl font-bold">Supported Report Types</h2>
-          <p className="mx-auto mt-4 max-w-2xl text-center text-muted-foreground">
+          <h2 className="text-center text-2xl sm:text-3xl font-bold">Supported Report Types</h2>
+          <p className="mx-auto mt-4 max-w-2xl text-center text-muted-foreground px-4">
             Generate all common IND filing report types with consistent formatting
           </p>
 
-          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-8 md:mt-12 grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
             {REPORT_TYPES.map((type) => (
               <Card key={type.type} className="hover:shadow-lg transition-shadow border-0 shadow-md">
                 <CardHeader>
@@ -208,21 +209,21 @@ export default function Home() {
       </section>
 
       {/* About the Developer Section */}
-      <section className="py-20 bg-white">
+      <section className="py-10 md:py-16 lg:py-20 bg-white">
         <div className="container">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold">Built by an Industry Expert</h2>
+          <div className="max-w-4xl mx-auto px-4">
+            <div className="text-center mb-8 md:mb-12">
+              <h2 className="text-2xl sm:text-3xl font-bold">Built by an Industry Expert</h2>
               <p className="mt-4 text-muted-foreground">
                 Pharmascribe is developed by someone who understands the challenges of regulatory writing firsthand.
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 md:p-12">
-              <div className="flex flex-col md:flex-row items-center gap-8">
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 sm:p-8 md:p-12">
+              <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
                 {/* Developer Photo */}
                 <div className="flex-shrink-0">
-                  <div className="w-36 h-36 rounded-full overflow-hidden shadow-xl shadow-gray-300/50 ring-4 ring-white">
+                  <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden shadow-xl shadow-gray-300/50 ring-4 ring-white">
                     <img
                       src="/headshot.jpg"
                       alt="Husain Attarwala, PhD"
@@ -276,10 +277,10 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-b from-white to-red-50/30 relative overflow-hidden">
+      <section className="py-10 md:py-16 lg:py-20 bg-gradient-to-b from-white to-red-50/30 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#ff6b6b]/5 rounded-full blur-3xl"></div>
-        <div className="container text-center relative z-10">
-          <h2 className="text-3xl font-bold">Ready to Get Started?</h2>
+        <div className="container text-center relative z-10 px-4">
+          <h2 className="text-2xl sm:text-3xl font-bold">Ready to Get Started?</h2>
           <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
             Start generating your first IND report in minutes. No complex setup required.
           </p>

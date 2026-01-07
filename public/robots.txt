@@ -1,5 +1,5 @@
 # Robots.txt for Pharmascribe AI
-# https://www.pharmascribeai.com
+# https://pharmascribe.clintel.ai
 
 # Default rules
 User-agent: *
@@ -83,7 +83,7 @@ User-agent: Twitterbot
 Allow: /
 
 # Sitemap location
-Sitemap: https://www.pharmascribeai.com/sitemap.xml
+Sitemap: https://pharmascribe.clintel.ai/sitemap.xml
 
 # LLMs.txt - AI crawler information
-# See: https://www.pharmascribeai.com/llms.txt
+# See: https://pharmascribe.clintel.ai/llms.txt

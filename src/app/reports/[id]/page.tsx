@@ -314,42 +314,43 @@ export default function ReportEditorPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container flex h-14 items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="container flex h-12 sm:h-14 items-center justify-between px-2 sm:px-4">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <Link href={isDemo ? "/" : "/reports"}>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>
-            <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Pharmascribe" className="h-8 w-8 object-contain" />
-              <div>
-                <h1 className="font-semibold">{report.reportTitle}</h1>
-                <p className="text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <img src="/logo.png" alt="Pharmascribe" className="h-6 w-6 sm:h-8 sm:w-8 object-contain flex-shrink-0 hidden sm:block" />
+              <div className="min-w-0">
+                <h1 className="font-semibold text-sm sm:text-base truncate max-w-[120px] sm:max-w-[200px] md:max-w-none">{report.reportTitle}</h1>
+                <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
                   {report.studyId} | {getReportTypeLabel(report.reportType)}
                 </p>
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge className={getStatusColor(report.status)}>
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            <Badge className={`${getStatusColor(report.status)} text-[10px] sm:text-xs hidden sm:inline-flex`}>
               {report.status.replace('_', ' ')}
             </Badge>
             {!report.content && (
               <Button
                 onClick={handleOpenQuestionnaire}
                 disabled={generating}
-                className="gap-2"
+                size="sm"
+                className="gap-1 sm:gap-2 text-xs sm:text-sm"
               >
                 {generating ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Generating...
+                    <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                    <span className="hidden sm:inline">Generating...</span>
                   </>
                 ) : (
                   <>
-                    <Zap className="h-4 w-4" />
-                    Generate Report
+                    <Zap className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden xs:inline">Generate</span>
                   </>
                 )}
               </Button>
@@ -358,21 +359,22 @@ export default function ReportEditorPage() {
               <>
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={handleResetReport}
-                  className="gap-2"
+                  className="gap-1 sm:gap-2 text-xs sm:text-sm"
                   title="Reset and regenerate report"
                 >
-                  <RefreshCw className="h-4 w-4" />
-                  Regenerate
+                  <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden md:inline">Regenerate</span>
                 </Button>
-                <Button variant="outline" onClick={() => handleExport('docx')} className="gap-2">
-                  <Download className="h-4 w-4" />
-                  Export DOCX
+                <Button variant="outline" size="sm" onClick={() => handleExport('docx')} className="gap-1 sm:gap-2 text-xs sm:text-sm">
+                  <Download className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Export</span>
                 </Button>
                 <Link href={`/reports/${params.id}/qc`}>
-                  <Button variant="outline" className="gap-2">
-                    <CheckCircle className="h-4 w-4" />
-                    Run QC
+                  <Button variant="outline" size="sm" className="gap-1 sm:gap-2 text-xs sm:text-sm">
+                    <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">QC</span>
                   </Button>
                 </Link>
               </>
@@ -467,24 +469,24 @@ export default function ReportEditorPage() {
         {/* Main Editor Area */}
         <main className="flex-1 flex flex-col">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <div className="border-b bg-white px-4">
-              <TabsList className="h-12">
-                <TabsTrigger value="editor" className="gap-2">
-                  <FileText className="h-4 w-4" />
-                  Editor
+            <div className="border-b bg-white px-2 sm:px-4">
+              <TabsList className="h-10 sm:h-12">
+                <TabsTrigger value="editor" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+                  <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Editor</span>
                 </TabsTrigger>
-                <TabsTrigger value="preview" className="gap-2">
-                  <Settings className="h-4 w-4" />
-                  Preview
+                <TabsTrigger value="preview" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+                  <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Preview</span>
                 </TabsTrigger>
-                <TabsTrigger value="chat" className="gap-2">
-                  <MessageSquare className="h-4 w-4" />
-                  AI Chat
+                <TabsTrigger value="chat" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+                  <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Chat</span>
                 </TabsTrigger>
               </TabsList>
             </div>
 
-            <TabsContent value="editor" className="flex-1 p-4 mt-0">
+            <TabsContent value="editor" className="flex-1 p-2 sm:p-4 mt-0">
               {report.content ? (
                 <SectionEditor
                   sections={sections}
@@ -527,7 +529,7 @@ export default function ReportEditorPage() {
               )}
             </TabsContent>
 
-            <TabsContent value="preview" className="flex-1 p-4 mt-0 overflow-auto">
+            <TabsContent value="preview" className="flex-1 p-2 sm:p-4 mt-0 overflow-auto">
               {report.content ? (
                 <ReportPreview report={report} />
               ) : (
