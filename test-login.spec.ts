@@ -17,7 +17,7 @@ test('test cognito login', async ({ page }) => {
   await page.screenshot({ path: 'login-initial.png' });
 
   // Fill in credentials
-  await page.fill('input[type="email"]', 'admin@pharmascribe.local');
+  await page.fill('input[type="email"]', 'admin@aria.local');
   await page.fill('input[type="password"]', 'Password1');
 
   // Take screenshot before submit

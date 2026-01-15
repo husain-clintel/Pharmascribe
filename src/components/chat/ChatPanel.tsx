@@ -64,8 +64,8 @@ function formatTime(date: Date): string {
 }
 
 // Cool chatbot name
-const CHATBOT_NAME = "Pharmascribe"
-const CHATBOT_TAGLINE = "Your AI Regulatory Writing Assistant"
+const CHATBOT_NAME = "ARIA"
+const CHATBOT_TAGLINE = "AI Regulatory IND Assistant"
 
 
 export function ChatPanel({ reportId, messages: initialMessages, onRefreshReport, initialPrompt, onInitialPromptUsed, qcFindings, onQcFindingsUsed, isDemo = false }: ChatPanelProps) {

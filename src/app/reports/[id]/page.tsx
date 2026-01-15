@@ -322,7 +322,7 @@ export default function ReportEditorPage() {
               </Button>
             </Link>
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <img src="/logo.png" alt="Pharmascribe" className="h-6 w-6 sm:h-8 sm:w-8 object-contain flex-shrink-0 hidden sm:block" />
+              <img src="/logo.png" alt="ARIA" className="h-6 w-6 sm:h-8 sm:w-8 object-contain flex-shrink-0 hidden sm:block" />
               <div className="min-w-0">
                 <h1 className="font-semibold text-sm sm:text-base truncate max-w-[120px] sm:max-w-[200px] md:max-w-none">{report.reportTitle}</h1>
                 <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
@@ -506,7 +506,7 @@ export default function ReportEditorPage() {
               ) : (
                 <Card className="max-w-xl mx-auto mt-20">
                   <CardHeader className="text-center">
-                    <img src="/logo.png" alt="Pharmascribe" className="h-16 w-16 mx-auto mb-4 object-contain" />
+                    <img src="/logo.png" alt="ARIA" className="h-16 w-16 mx-auto mb-4 object-contain" />
                     <CardTitle>Generate Your Report</CardTitle>
                   </CardHeader>
                   <CardContent className="text-center">

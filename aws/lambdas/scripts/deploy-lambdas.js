@@ -12,7 +12,7 @@ const LAMBDAS = [
 ];
 
 const REGION = 'us-east-1';
-const ROLE_ARN = 'arn:aws:iam::660309491335:role/pharmascribe-lambda-role';
+const ROLE_ARN = 'arn:aws:iam::660309491335:role/aria-lambda-role';
 const ROOT_DIR = path.join(__dirname, '..');
 const DIST_DIR = path.join(ROOT_DIR, 'dist');
 
@@ -52,7 +52,7 @@ function lambdaExists(functionName) {
 
 // Create or update Lambda
 async function deployLambda(lambdaName) {
-  const functionName = `pharmascribe-${lambdaName}`;
+  const functionName = `aria-${lambdaName}`;
   const zipPath = createZip(lambdaName);
 
   console.log(`Deploying ${functionName}...`);
@@ -64,7 +64,7 @@ async function deployLambda(lambdaName) {
   } else {
     // Create new function
     console.log(`  Creating new function...`);
-    awsCli(`lambda create-function --function-name ${functionName} --runtime nodejs20.x --role ${ROLE_ARN} --handler index.handler --zip-file fileb://${zipPath} --timeout 120 --memory-size 512 --region ${REGION} --environment "Variables={DYNAMODB_MEMORY_TABLE=pharmascribe-agent-memory,AWS_NODEJS_CONNECTION_REUSE_ENABLED=1}"`);
+    awsCli(`lambda create-function --function-name ${functionName} --runtime nodejs20.x --role ${ROLE_ARN} --handler index.handler --zip-file fileb://${zipPath} --timeout 120 --memory-size 512 --region ${REGION} --environment "Variables={DYNAMODB_MEMORY_TABLE=aria-agent-memory,AWS_NODEJS_CONNECTION_REUSE_ENABLED=1}"`);
   }
 
   console.log(`✓ Deployed ${functionName}`);

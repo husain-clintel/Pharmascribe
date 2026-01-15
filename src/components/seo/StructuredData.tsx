@@ -131,10 +131,10 @@ export function HomePageStructuredData() {
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "Pharmascribe",
-    url: "https://pharmascribe.clintel.ai",
-    logo: "https://pharmascribe.clintel.ai/logo.png",
-    description: "AI-powered regulatory writing assistant for pharmaceutical and biotech companies. Generate FDA-compliant IND reports in minutes.",
+    name: "ARIA",
+    url: "https://aria.clintel.ai",
+    logo: "https://aria.clintel.ai/logo.png",
+    description: "AI Regulatory IND Assistant for pharmaceutical and biotech companies. Generate FDA-compliant IND reports in minutes.",
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "customer service",
@@ -145,7 +145,7 @@ export function HomePageStructuredData() {
   const softwareSchema = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: "Pharmascribe",
+    name: "ARIA",
     description: "Transform your study data into regulatory-compliant IND reports in minutes with AI-powered document generation. Supports PK, toxicology, CMC, and other report types.",
     applicationCategory: "BusinessApplication",
     applicationSubCategory: "Regulatory Writing Software",
@@ -166,7 +166,7 @@ export function HomePageStructuredData() {
       "Microsoft Word document export",
       "Support for PK, toxicology, CMC, and more report types",
     ],
-    screenshot: "https://pharmascribe.clintel.ai/logo.png",
+    screenshot: "https://aria.clintel.ai/logo.png",
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: "5",
@@ -179,24 +179,24 @@ export function HomePageStructuredData() {
   const webPageSchema = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: "Pharmascribe - AI Regulatory Writing Assistant for IND Reports",
+    name: "ARIA - AI Regulatory IND Assistant",
     description: "Transform your study data into regulatory-compliant IND reports in minutes with AI-powered document generation.",
-    url: "https://pharmascribe.clintel.ai",
+    url: "https://aria.clintel.ai",
     isPartOf: {
       "@type": "WebSite",
-      name: "Pharmascribe",
-      url: "https://pharmascribe.clintel.ai",
+      name: "ARIA",
+      url: "https://aria.clintel.ai",
     },
     mainEntity: {
       "@type": "SoftwareApplication",
-      name: "Pharmascribe",
+      name: "ARIA",
     },
   }
 
   const howToSchema = {
     "@context": "https://schema.org",
     "@type": "HowTo",
-    name: "How to Generate an IND Report with Pharmascribe",
+    name: "How to Generate an IND Report with ARIA",
     description: "Generate FDA-compliant regulatory reports in 4 simple steps using AI",
     totalTime: "PT10M",
     step: [
@@ -233,15 +233,15 @@ export function HomePageStructuredData() {
     mainEntity: [
       {
         "@type": "Question",
-        name: "What types of reports can Pharmascribe generate?",
+        name: "What types of reports can ARIA generate?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Pharmascribe can generate PK (Pharmacokinetics) reports, Toxicology reports, CMC (Chemistry, Manufacturing & Controls), Clinical Pharmacology, Bioanalytical Method Validation, ADME studies, and Pharmacology reports.",
+          text: "ARIA can generate PK (Pharmacokinetics) reports, Toxicology reports, CMC (Chemistry, Manufacturing & Controls), Clinical Pharmacology, Bioanalytical Method Validation, ADME studies, and Pharmacology reports.",
         },
       },
       {
         "@type": "Question",
-        name: "Do I need to sign up to try Pharmascribe?",
+        name: "Do I need to sign up to try ARIA?",
         acceptedAnswer: {
           "@type": "Answer",
           text: "No, you can try the full demo with sample theophylline PK study data without signing up. Just click 'Try Demo' on the homepage.",
@@ -249,10 +249,10 @@ export function HomePageStructuredData() {
       },
       {
         "@type": "Question",
-        name: "What format does Pharmascribe export reports in?",
+        name: "What format does ARIA export reports in?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Pharmascribe exports publication-quality reports in Microsoft Word (.docx) format, following FDA formatting guidelines and IMRAD structure.",
+          text: "ARIA exports publication-quality reports in Microsoft Word (.docx) format, following FDA formatting guidelines and IMRAD structure.",
         },
       },
     ],

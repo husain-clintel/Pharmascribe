@@ -1,7 +1,7 @@
 {
-  "name": "pharmascribe-lambdas",
+  "name": "aria-lambdas",
   "version": "1.0.0",
-  "description": "AWS Lambda functions for PharmaScribe AI Agent",
+  "description": "AWS Lambda functions for ARIA AI Agent",
   "scripts": {
     "build": "tsc",
     "package": "npm run build && node scripts/package-lambdas.js",

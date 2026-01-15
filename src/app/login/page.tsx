@@ -84,7 +84,7 @@ export default function LoginPage() {
         <Card className="border-0 shadow-xl">
           <CardHeader className="text-center pb-2">
             <div className="flex justify-center mb-4">
-              <img src="/logo.png" alt="Pharmascribe" className="h-16 w-16 object-contain" />
+              <img src="/logo.png" alt="ARIA" className="h-16 w-16 object-contain" />
             </div>
             <CardTitle className="text-2xl font-bold">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53]">
@@ -92,7 +92,7 @@ export default function LoginPage() {
               </span>
             </CardTitle>
             <CardDescription>
-              Sign in to your PharmaScribe account
+              Sign in to your ARIA account
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -140,7 +140,7 @@ export default function LoginPage() {
             <div className="mt-6 text-center text-sm text-muted-foreground">
               Don&apos;t have an account?{' '}
               <a
-                href="mailto:info@clintel.ai?subject=Pharmascribe%20Access%20Request"
+                href="mailto:info@clintel.ai?subject=ARIA%20Access%20Request"
                 className="text-[#ff6b6b] hover:text-[#ff5252] font-medium"
               >
                 Request Access

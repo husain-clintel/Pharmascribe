@@ -8,7 +8,7 @@ import {
 } from '@aws-sdk/lib-dynamodb'
 import type { AgentMemory, MemoryType, MemoryCategory } from './types'
 
-const TABLE_NAME = process.env.DYNAMODB_MEMORY_TABLE || 'pharmascribe-agent-memory'
+const TABLE_NAME = process.env.DYNAMODB_MEMORY_TABLE || 'aria-agent-memory'
 
 const client = new DynamoDBClient({
   region: process.env.AWS_REGION || 'us-east-1'

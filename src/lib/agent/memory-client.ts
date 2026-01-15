@@ -15,7 +15,7 @@ import type {
   RecallMemoryResponse
 } from './types'
 
-const TABLE_NAME = process.env.DYNAMODB_MEMORY_TABLE || 'pharmascribe-agent-memory'
+const TABLE_NAME = process.env.DYNAMODB_MEMORY_TABLE || 'aria-agent-memory'
 
 // Initialize DynamoDB client
 const client = new DynamoDBClient({

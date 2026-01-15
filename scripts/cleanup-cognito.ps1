@@ -1,4 +1,4 @@
-# PharmaScribe - AWS Cognito Cleanup Script (PowerShell)
+# ARIA - AWS Cognito Cleanup Script (PowerShell)
 # This script deletes the Cognito User Pool created by setup-cognito.ps1
 
 $ErrorActionPreference = "Stop"
@@ -6,7 +6,7 @@ $ErrorActionPreference = "Stop"
 $REGION = if ($env:AWS_REGION) { $env:AWS_REGION } else { "us-east-1" }
 
 Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host "PharmaScribe - Cognito Cleanup" -ForegroundColor Cyan
+Write-Host "ARIA - Cognito Cleanup" -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host ""
 

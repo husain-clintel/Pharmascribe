@@ -92,7 +92,7 @@ export default function ReportsPage() {
               </Button>
             </Link>
             <div className="flex items-center gap-2 sm:gap-3">
-              <img src="/logo.png" alt="Pharmascribe" className="h-6 w-6 sm:h-8 sm:w-8 object-contain" />
+              <img src="/logo.png" alt="ARIA" className="h-6 w-6 sm:h-8 sm:w-8 object-contain" />
               <span className="text-base sm:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53]">My Reports</span>
             </div>
           </div>

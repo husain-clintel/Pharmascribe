@@ -9,7 +9,7 @@
         "states:StartSyncExecution"
       ],
       "Resource": [
-        "arn:aws:states:us-east-1:660309491335:stateMachine:pharmascribe-*"
+        "arn:aws:states:us-east-1:660309491335:stateMachine:aria-*"
       ]
     }
   ]

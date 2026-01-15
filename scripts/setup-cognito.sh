@@ -1,19 +1,19 @@
 #!/bin/bash
 
-# PharmaScribe - AWS Cognito Setup Script
+# ARIA - AWS Cognito Setup Script
 # This script creates a Cognito User Pool, App Client, and admin user
 
 set -e
 
 # Configuration
-POOL_NAME="pharmascribe-users"
-CLIENT_NAME="pharmascribe-web"
-ADMIN_EMAIL="admin@pharmascribe.local"
+POOL_NAME="aria-users"
+CLIENT_NAME="aria-web"
+ADMIN_EMAIL="admin@aria.local"
 ADMIN_PASSWORD="welcome"
 REGION="${AWS_REGION:-us-east-1}"
 
 echo "=========================================="
-echo "PharmaScribe - Cognito Setup"
+echo "ARIA - Cognito Setup"
 echo "=========================================="
 echo ""
 echo "Region: $REGION"

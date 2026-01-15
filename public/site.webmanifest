@@ -1,6 +1,6 @@
 {
-  "name": "Pharmascribe - AI Regulatory Writing Assistant",
-  "short_name": "Pharmascribe",
+  "name": "ARIA - AI Regulatory IND Assistant",
+  "short_name": "ARIA",
   "description": "Transform your study data into regulatory-compliant IND reports in minutes with AI-powered document generation.",
   "start_url": "/",
   "display": "standalone",
@@ -28,7 +28,7 @@
       "sizes": "1200x630",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Pharmascribe Homepage"
+      "label": "ARIA Homepage"
     }
   ],
   "related_applications": [],

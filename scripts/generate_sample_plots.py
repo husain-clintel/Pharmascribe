@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate sample concentration-time plots for the Pharmascribe demo data.
+Generate sample concentration-time plots for the ARIA demo data.
 Creates individual subject plots and a mean plot with SD error bars.
 """
 

@@ -1,17 +1,17 @@
-# PharmaScribe - AWS Cognito Setup Script (PowerShell)
+# ARIA - AWS Cognito Setup Script (PowerShell)
 # This script creates a Cognito User Pool, App Client, and admin user
 
 $ErrorActionPreference = "Stop"
 
 # Configuration
-$POOL_NAME = "pharmascribe-users"
-$CLIENT_NAME = "pharmascribe-web"
-$ADMIN_EMAIL = "admin@pharmascribe.local"
+$POOL_NAME = "aria-users"
+$CLIENT_NAME = "aria-web"
+$ADMIN_EMAIL = "admin@aria.local"
 $ADMIN_PASSWORD = "welcome"
 $REGION = if ($env:AWS_REGION) { $env:AWS_REGION } else { "us-east-1" }
 
 Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host "PharmaScribe - Cognito Setup" -ForegroundColor Cyan
+Write-Host "ARIA - Cognito Setup" -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Region: $REGION"

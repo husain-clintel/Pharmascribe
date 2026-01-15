@@ -41,8 +41,8 @@ export default function Home() {
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
           <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity flex-shrink-0">
-            <img src="/logo.png" alt="Pharmascribe" className="h-8 w-8 object-contain" />
-            <span className="hidden xs:inline text-base sm:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53]">Pharmascribe</span>
+            <img src="/logo.png" alt="ARIA" className="h-8 w-8 object-contain" />
+            <span className="hidden xs:inline text-base sm:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53]">ARIA</span>
           </Link>
           <nav className="flex items-center gap-1 sm:gap-3">
             <Link href="/reports">
@@ -61,12 +61,12 @@ export default function Home() {
 
         <div className="container text-center relative z-10">
           <div className="flex justify-center mb-4 sm:mb-6">
-            <img src="/logo.png" alt="Pharmascribe" className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 object-contain" />
+            <img src="/logo.png" alt="ARIA" className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 object-contain" />
           </div>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53]">Pharmascribe</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53]">ARIA</span>
           </h1>
-          <p className="text-lg sm:text-xl text-gray-600 mt-2 font-medium">Your AI Regulatory Writing Assistant</p>
+          <p className="text-lg sm:text-xl text-gray-600 mt-2 font-medium">AI Regulatory IND Assistant</p>
           <p className="mx-auto mt-4 sm:mt-6 max-w-2xl text-base sm:text-lg text-muted-foreground px-4">
             Transform your study data into regulatory-compliant reports in minutes.
             Upload your tables, figures, and documents, and let AI generate publication-quality
@@ -227,11 +227,11 @@ export default function Home() {
       <footer className="border-t bg-gray-900 py-8 text-white">
         <div className="container text-center">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <img src="/logo-dark.png" alt="Pharmascribe" className="h-6 w-6 object-contain" />
-            <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53]">Pharmascribe</span>
+            <img src="/logo-dark.png" alt="ARIA" className="h-6 w-6 object-contain" />
+            <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#ff6b6b] to-[#ff8e53]">ARIA</span>
           </div>
-          <p className="text-gray-400 text-sm">AI-Powered Regulatory Report Generation</p>
-          <p className="mt-2 text-gray-500 text-xs">&copy; {new Date().getFullYear()} Pharmascribe. All rights reserved.</p>
+          <p className="text-gray-400 text-sm">AI Regulatory IND Assistant</p>
+          <p className="mt-2 text-gray-500 text-xs">&copy; {new Date().getFullYear()} ARIA. All rights reserved.</p>
         </div>
       </footer>
     </div>

@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://pharmascribe.clintel.ai'
+  const baseUrl = 'https://aria.clintel.ai'
   const currentDate = new Date().toISOString()
 
   return [

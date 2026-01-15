@@ -14,10 +14,10 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://pharmascribe.clintel.ai'),
+  metadataBase: new URL('https://aria.clintel.ai'),
   title: {
-    default: "Pharmascribe - AI Regulatory Writing Assistant for IND Reports",
-    template: "%s | Pharmascribe",
+    default: "ARIA - AI Regulatory IND Assistant",
+    template: "%s | ARIA",
   },
   description: "Transform your study data into regulatory-compliant IND reports in minutes. AI-powered generation of PK, toxicology, CMC, and clinical pharmacology reports following FDA guidelines.",
   keywords: [
@@ -42,9 +42,9 @@ export const metadata: Metadata = {
     "regulatory documents",
     "pharma AI",
   ],
-  authors: [{ name: "Pharmascribe Team" }],
-  creator: "Pharmascribe",
-  publisher: "Pharmascribe",
+  authors: [{ name: "ARIA Team" }],
+  creator: "ARIA",
+  publisher: "ARIA",
   robots: {
     index: true,
     follow: true,
@@ -60,32 +60,32 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://pharmascribe.clintel.ai",
-    siteName: "Pharmascribe",
-    title: "Pharmascribe - AI Regulatory Writing Assistant",
+    url: "https://aria.clintel.ai",
+    siteName: "ARIA",
+    title: "ARIA - AI Regulatory IND Assistant",
     description: "Transform your study data into regulatory-compliant IND reports in minutes. AI-powered generation of PK, toxicology, CMC, and clinical pharmacology reports following FDA guidelines.",
     images: [
       {
         url: "/logo.png",
         width: 512,
         height: 512,
-        alt: "Pharmascribe - AI Regulatory Writing Assistant",
+        alt: "ARIA - AI Regulatory IND Assistant",
       },
     ],
   },
   twitter: {
     card: "summary",
-    title: "Pharmascribe - AI Regulatory Writing Assistant",
+    title: "ARIA - AI Regulatory IND Assistant",
     description: "Transform your study data into regulatory-compliant IND reports in minutes with AI-powered document generation.",
     images: ["/logo.png"],
   },
   alternates: {
-    canonical: "https://pharmascribe.clintel.ai",
+    canonical: "https://aria.clintel.ai",
   },
   category: "Technology",
   classification: "Business Software",
   other: {
-    'llms.txt': 'https://pharmascribe.clintel.ai/llms.txt',
+    'llms.txt': 'https://aria.clintel.ai/llms.txt',
   },
 }
 

@@ -101,7 +101,7 @@ export function ChatProgress({ isLoading }: ChatProgressProps) {
         </div>
         <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between">
           <span className="text-xs text-gray-400">{elapsedTime}s elapsed</span>
-          <span className="text-xs text-gray-400">Pharmascribe is working...</span>
+          <span className="text-xs text-gray-400">ARIA is working...</span>
         </div>
       </div>
     </div>

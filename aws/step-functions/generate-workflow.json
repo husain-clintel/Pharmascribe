@@ -1,5 +1,5 @@
 {
-  "Comment": "PharmaScribe Generate Workflow - Generates complete report sections and tables",
+  "Comment": "ARIA Generate Workflow - Generates complete report sections and tables",
   "StartAt": "ParallelInit",
   "States": {
     "ParallelInit": {
@@ -11,7 +11,7 @@
           "States": {
             "RecallPreferences": {
               "Type": "Task",
-              "Resource": "arn:aws:lambda:us-east-1:660309491335:function:pharmascribe-memory-manager",
+              "Resource": "arn:aws:lambda:us-east-1:660309491335:function:aria-memory-manager",
               "Parameters": {
                 "action": "recall",
                 "reportId.$": "$.reportId"
@@ -94,7 +94,7 @@
         "States": {
           "WriteSection": {
             "Type": "Task",
-            "Resource": "arn:aws:lambda:us-east-1:660309491335:function:pharmascribe-section-writer",
+            "Resource": "arn:aws:lambda:us-east-1:660309491335:function:aria-section-writer",
             "Parameters": {
               "reportId.$": "$.reportId",
               "sectionId.$": "$.sectionId",
@@ -143,7 +143,7 @@
           "States": {
             "GeneratePKSummaryTable": {
               "Type": "Task",
-              "Resource": "arn:aws:lambda:us-east-1:660309491335:function:pharmascribe-table-generator",
+              "Resource": "arn:aws:lambda:us-east-1:660309491335:function:aria-table-generator",
               "Parameters": {
                 "reportId.$": "$.reportId",
                 "tableType": "pk-summary",
@@ -172,7 +172,7 @@
           "States": {
             "GenerateConcentrationTable": {
               "Type": "Task",
-              "Resource": "arn:aws:lambda:us-east-1:660309491335:function:pharmascribe-table-generator",
+              "Resource": "arn:aws:lambda:us-east-1:660309491335:function:aria-table-generator",
               "Parameters": {
                 "reportId.$": "$.reportId",
                 "tableType": "concentration-time",
@@ -213,7 +213,7 @@
     },
     "RunFinalQC": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:us-east-1:660309491335:function:pharmascribe-qc-agent",
+      "Resource": "arn:aws:lambda:us-east-1:660309491335:function:aria-qc-agent",
       "Parameters": {
         "reportId.$": "$.reportId",
         "content": {
@@ -234,7 +234,7 @@
     },
     "StoreGenerationContext": {
       "Type": "Task",
-      "Resource": "arn:aws:lambda:us-east-1:660309491335:function:pharmascribe-memory-manager",
+      "Resource": "arn:aws:lambda:us-east-1:660309491335:function:aria-memory-manager",
       "Parameters": {
         "action": "store",
         "reportId.$": "$.reportId",

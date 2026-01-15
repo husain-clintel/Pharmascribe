@@ -1,5 +1,5 @@
-# Robots.txt for Pharmascribe AI
-# https://pharmascribe.clintel.ai
+# Robots.txt for ARIA - AI Regulatory IND Assistant
+# https://aria.clintel.ai
 
 # Default rules
 User-agent: *
@@ -83,7 +83,7 @@ User-agent: Twitterbot
 Allow: /
 
 # Sitemap location
-Sitemap: https://pharmascribe.clintel.ai/sitemap.xml
+Sitemap: https://aria.clintel.ai/sitemap.xml
 
 # LLMs.txt - AI crawler information
-# See: https://pharmascribe.clintel.ai/llms.txt
+# See: https://aria.clintel.ai/llms.txt
