@@ -503,17 +503,20 @@ function NewReportContent() {
             <div>
               <h2 className="text-xl font-semibold mb-4">Upload Study Protocol</h2>
               <p className="text-muted-foreground mb-6">
-                Upload your study protocol (PDF or Word). The AI will automatically extract study metadata to pre-fill the form.
+                {isDemo
+                  ? "In demo mode, use our sample protocol to see how AI-powered metadata extraction works."
+                  : "Upload your study protocol (PDF or Word). The AI will automatically extract study metadata to pre-fill the form."
+                }
               </p>
 
-              {isDemo && !protocolFile && (
-                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              {isDemo && !protocolFile && !loadingSampleProtocol && (
+                <div className="p-6 bg-blue-50 border border-blue-200 rounded-lg">
                   <div className="flex items-center gap-2 text-blue-800 mb-2">
                     <Play className="h-5 w-5" />
-                    <span className="font-medium">Demo Mode: Try Our Sample Protocol</span>
+                    <span className="font-medium">Demo Mode: Sample Protocol</span>
                   </div>
                   <p className="text-sm text-blue-600 mb-4">
-                    Click the button below to load our sample theophylline PK study protocol and see how metadata extraction works.
+                    In demo mode, you can only use our sample theophylline PK study protocol. Click the button below to load it and see how metadata extraction works.
                   </p>
                   <Button
                     onClick={loadSampleProtocol}
@@ -535,14 +538,11 @@ function NewReportContent() {
                 </div>
               )}
 
-              {!protocolFile && !loadingSampleProtocol ? (
+              {!isDemo && !protocolFile && !loadingSampleProtocol ? (
                 <div className="border-2 border-dashed rounded-lg p-8 text-center">
                   <FileUp className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground mb-4">
-                    {isDemo
-                      ? "Or drag and drop your own protocol file here"
-                      : "Drag and drop your protocol file here, or click to browse"
-                    }
+                    Drag and drop your protocol file here, or click to browse
                   </p>
                   <FileUploader
                     onUpload={handleProtocolUpload}
@@ -617,9 +617,11 @@ function NewReportContent() {
                 </div>
               ) : null}
 
-              <p className="text-sm text-muted-foreground mt-6">
-                <strong>Tip:</strong> You can skip this step and enter metadata manually, but uploading a protocol helps ensure accuracy and saves time.
-              </p>
+              {!isDemo && (
+                <p className="text-sm text-muted-foreground mt-6">
+                  <strong>Tip:</strong> You can skip this step and enter metadata manually, but uploading a protocol helps ensure accuracy and saves time.
+                </p>
+              )}
             </div>
           )}
 
@@ -797,17 +799,20 @@ function NewReportContent() {
             <div>
               <h2 className="text-xl font-semibold mb-4">Upload Data Files</h2>
               <p className="text-muted-foreground mb-6">
-                Upload your data files (NCA parameters, concentration data) and figures
+                {isDemo
+                  ? "In demo mode, use our sample theophylline study data files to explore the full workflow."
+                  : "Upload your data files (NCA parameters, concentration data) and figures"
+                }
               </p>
 
-              {isDemo && dataFiles.length === 0 && (
-                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              {isDemo && dataFiles.length === 0 && !loadingSampleData && (
+                <div className="p-6 bg-blue-50 border border-blue-200 rounded-lg">
                   <div className="flex items-center gap-2 text-blue-800 mb-2">
                     <Play className="h-5 w-5" />
-                    <span className="font-medium">Demo Mode: Try Our Sample Data</span>
+                    <span className="font-medium">Demo Mode: Sample Data</span>
                   </div>
                   <p className="text-sm text-blue-600 mb-4">
-                    Click the button below to load sample NCA parameters, concentration-time data, and figures for the theophylline study.
+                    In demo mode, you can only use our sample theophylline study data. Click the button below to load NCA parameters, concentration-time data, and figures.
                   </p>
                   <Button
                     onClick={loadSampleData}
@@ -837,9 +842,9 @@ function NewReportContent() {
                     Uploading NCA parameters and concentration data
                   </p>
                 </div>
-              ) : (
+              ) : !isDemo ? (
                 <FileUploader onUpload={handleDataFileUpload} />
-              )}
+              ) : null}
 
               {dataFiles.length > 0 && (
                 <div className="mt-6">
